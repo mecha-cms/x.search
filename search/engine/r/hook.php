@@ -3,7 +3,7 @@
 // Highlight the matching text
 function mark($content) {
     $out = "";
-    if ($query = \preg_split('/\s+/', \HTTP::get(\state('search')['key']))) {
+    if ($query = \preg_split('/\s+/', (string) $_GET[\state('search')['key']] ?? "")) {
         foreach (\preg_split('/(<[^>]+>)/', $content, null, \PREG_SPLIT_DELIM_CAPTURE | \PREG_SPLIT_NO_EMPTY) as $v) {
             if ($v && $v[0] === '<' && \substr($v, -1) === '>') {
                 $out .= $v; // Ignore HTML tag(s)
