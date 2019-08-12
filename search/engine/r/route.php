@@ -45,7 +45,7 @@ function k(string $f, array $q = []) {
 }
 
 $q = \state('search')['key'];
-if ($query = ($_GET[$q] ?? "")) {
+if ($query = \Get::get($q)) {
     $folder = PAGE . $url->path(DS);
     $file = \File::exist([
         $folder . '.page',
