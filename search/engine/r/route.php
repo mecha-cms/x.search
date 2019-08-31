@@ -61,10 +61,9 @@ if ($query = \Get::get($q)) {
                 $files[] = $v;
             }
         }
-        // TODO: Comments
-        // Check how much the same path captured in `$files` after doing search
+        // Check how much duplicate path captured in `$files` after doing the search
         $files = \array_count_values($files);
-        // Then sort them reversed to show you the most items
+        // Then sort them reversed to put the most captured item(s) on top
         \arsort($files);
         $GLOBALS['t'][] = $language->doSearch;
         $GLOBALS['t'][] = '&#x201C;' . $query . '&#x201D;';
