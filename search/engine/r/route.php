@@ -10,7 +10,7 @@ function k(string $f, array $q = []) {
                     if (empty($v) && $v !== '0') {
                         continue;
                     }
-                    $r = $f . DS . $b;
+                    $r = $f . \DS . $b;
                     // Find by query in file name…
                     if (\stripos($n, $v) !== false) {
                         yield $r;
@@ -22,7 +22,7 @@ function k(string $f, array $q = []) {
                             if ($kk === 0 && $vv === '---') {
                                 continue;
                             }
-                            // End of header, now ignore lines that looks like `key: value`
+                            // End of header, now ignore any line(s) that looks like `key: value`
                             if ($vv === '...') {
                                 $content = true;
                             }
@@ -46,7 +46,7 @@ function k(string $f, array $q = []) {
 
 $q = \state('search')['key'];
 if ($query = \Get::get($q)) {
-    $folder = PAGE . $url->path(DS);
+    $folder = \PAGE . $url->path(\DS);
     $file = \File::exist([
         $folder . '.page',
         $folder . '.archive',
@@ -61,11 +61,14 @@ if ($query = \Get::get($q)) {
                 $files[] = $v;
             }
         }
+        // TODO: Comments
+        // Check how much the same path captured in `$files` after doing search
         $files = \array_count_values($files);
+        // Then sort them reversed to show you the most items
         \arsort($files);
         $GLOBALS['t'][] = $language->doSearch;
-        $GLOBALS['t'][] = \To::title($query);
-        \Route::over('*', function() use($file, $files, $query, $url) {
+        $GLOBALS['t'][] = '&#x201C;' . $query . '&#x201D;';
+        \Route::over('*', function() use($file, $files, $url) {
             $files = \array_keys($files);
             $page = new \Page($file);
             $pages = new \Pages($files);
@@ -90,7 +93,8 @@ if ($query = \Get::get($q)) {
                 $this->status(404);
                 $this->content('404' . $path . '/' . ($i + 1));
             }
-            require __DIR__ . DS . 'hook.php';
+            // Apply the hook only if there is a match
+            require __DIR__ . \DS . 'hook.php';
             \Config::set([
                 'has' => [
                     'page' => true,
@@ -103,5 +107,8 @@ if ($query = \Get::get($q)) {
             ]);
             $this->content('pages' . $path . '/' . ($i + 1));
         });
+    } else {
+        $this->status(404);
+        $this->content('404' . $path);
     }
 }

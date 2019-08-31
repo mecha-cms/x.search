@@ -1,6 +1,6 @@
 <?php namespace _\lot\x\search;
 
-// Highlight the matching text
+// Highlight the matching part(s)
 function mark($content) {
     $out = "";
     if ($query = \preg_split('/\s+/', (string) \Get::get(\state('search')['key']])) {
