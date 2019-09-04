@@ -107,7 +107,21 @@ if ($query = \Get::get($q)) {
             $this->content('pages' . $path . '/' . ($i + 1));
         });
     } else {
-        $this->status(404);
-        $this->content('404' . $path);
+        \Route::over('*', function() use($url) {
+            \Config::set([
+                'has' => [
+                    'page' => false,
+                    'pages' => false
+                ],
+                'is' => [
+                    'error' => 404,
+                    'page' => true,
+                    'pages' => false
+                ]
+            ]);
+            // TODO: Use forbidden status code
+            $this->status(404);
+            $this->content('404' . $url->path);
+        });
     }
 }

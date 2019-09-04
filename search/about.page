@@ -3,7 +3,7 @@ title: Search
 description: Find files by query.
 author: Taufik Nurrohman
 type: Markdown
-version: 1.0.2
+version: 1.0.3
 
 use:
   '.\lot\x\page': 1
