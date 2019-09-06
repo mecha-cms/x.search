@@ -124,4 +124,5 @@ if ($query = \Get::get($q)) {
             $this->content('404' . $url->path);
         });
     }
+    \Config::set('is.search', true);
 }
