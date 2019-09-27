@@ -44,7 +44,7 @@ function k(string $f, array $q = []) {
     }
 }
 
-$q = \state('search')['key'];
+$q = \State::get('x.search.key');
 if ($query = \Get::get($q)) {
     $folder = \PAGE . $url->path(\DS);
     $file = \File::exist([
@@ -78,7 +78,7 @@ if ($query = \Get::get($q)) {
             $GLOBALS['pager'] = $pager;
             $GLOBALS['pages'] = $pages = $pages->chunk($chunk, $i);
             if ($pages->count() === 0) {
-                \Config::set([
+                \State::set([
                     'has' => [
                         'page' => false,
                         'pages' => false
@@ -94,7 +94,7 @@ if ($query = \Get::get($q)) {
             }
             // Apply the hook only if there is a match
             require __DIR__ . \DS . 'hook.php';
-            \Config::set([
+            \State::set([
                 'has' => [
                     'page' => true,
                     'pages' => true
@@ -108,7 +108,7 @@ if ($query = \Get::get($q)) {
         });
     } else {
         \Route::over('*', function() use($url) {
-            \Config::set([
+            \State::set([
                 'has' => [
                     'page' => false,
                     'pages' => false
@@ -124,5 +124,5 @@ if ($query = \Get::get($q)) {
             $this->content('404' . $url->path);
         });
     }
-    \Config::set('is.search', true);
+    \State::set('is.search', true);
 }
