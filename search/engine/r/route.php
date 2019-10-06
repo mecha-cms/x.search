@@ -13,7 +13,7 @@ function k(string $f, array $q = []) {
                     $r = $f . \DS . $b;
                     // Find by query in file name…
                     if (\stripos($n, $v) !== false) {
-                        yield $r;
+                        yield $r => \is_dir($r) ? 0 : 1;
                     // Find by query in page data…
                     } else if (\is_file($r)) {
                         $content = false;
@@ -28,11 +28,11 @@ function k(string $f, array $q = []) {
                             }
                             if ($content) {
                                 if (\stripos($vv, $v) !== false) {
-                                    yield $r;
+                                    yield $r => 1;
                                 }
                             } else {
                                 if (\stripos(\explode(': ', $vv)[1] ?? "", $v) !== false) {
-                                    yield $r;
+                                    yield $r => 1;
                                 }
                             }
                         }
@@ -56,9 +56,12 @@ if ($query = \Get::get($q)) {
         $search = \array_unique($search);
         $files = [];
         foreach (k($folder, $search) as $k => $v) {
-            $a = \pathinfo($v);
+            if ($v === 0) {
+                continue;
+            }
+            $a = \pathinfo($k);
             if (!empty($a['filename']) && !empty($a['extension']) && $a['extension'] === 'page') {
-                $files[] = $v;
+                $files[] = $k;
             }
         }
         // Check how much duplicate path captured in `$files` after doing the search

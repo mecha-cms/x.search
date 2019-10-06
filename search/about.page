@@ -3,7 +3,7 @@ title: Search
 description: Find files by query.
 author: Taufik Nurrohman
 type: Markdown
-version: 1.0.4
+version: 1.0.5
 
 use:
   '.\lot\x\page': 1
@@ -16,7 +16,7 @@ Append `?q=search+query` to the pages URL to search pages by file name or file c
 Add this snippet just before the `</header>` in `before.php` file of your active skin folder to add the default search form:
 
 ~~~ .php
-<?php static::form('search'); ?>
+<?= self::form('search'); ?>
 ~~~
 
 ### Conditions
