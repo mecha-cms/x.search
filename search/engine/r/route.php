@@ -68,7 +68,7 @@ if ($query = \Get::get($q)) {
         $files = \array_count_values($files);
         // Then sort them reversed to put the most captured item(s) on top
         \arsort($files);
-        $GLOBALS['t'][] = $language->doSearch;
+        $GLOBALS['t'][] = i('Search');
         $GLOBALS['t'][] = '&#x201C;' . $query . '&#x201D;';
         \Route::over('*', function() use($file, $files, $url) {
             $files = \array_keys($files);
