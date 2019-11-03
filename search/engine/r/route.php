@@ -1,37 +1,37 @@
 <?php namespace _\lot\x\search;
 
 // Just like the `\k` function but search only in the YAML value
-function k(string $f, array $q = []) {
+$search = function(string $f, array $q = []) {
     if (\is_dir($f) && $h = \opendir($f)) {
         while (false !== ($b = \readdir($h))) {
-            if ($b !== '.' && $b !== '..') {
+            if ('.' !== $b && '..' !== $b) {
                 $n = \pathinfo($b, \PATHINFO_FILENAME);
                 foreach ($q as $v) {
-                    if (empty($v) && $v !== '0') {
+                    if (empty($v) && '0' !== $v) {
                         continue;
                     }
                     $r = $f . \DS . $b;
                     // Find by query in file name…
-                    if (\stripos($n, $v) !== false) {
+                    if (false !== \stripos($n, $v)) {
                         yield $r => \is_dir($r) ? 0 : 1;
                     // Find by query in page data…
                     } else if (\is_file($r)) {
                         $content = false;
                         foreach (\stream($r) as $kk => $vv) {
                             // Start of header, skip!
-                            if ($kk === 0 && $vv === '---') {
+                            if (0 === $kk && '---' === $vv) {
                                 continue;
                             }
                             // End of header, now ignore any line(s) that looks like `key: value`
-                            if ($vv === '...') {
+                            if ('...' === $vv) {
                                 $content = true;
                             }
                             if ($content) {
-                                if (\stripos($vv, $v) !== false) {
+                                if (false !== \stripos($vv, $v)) {
                                     yield $r => 1;
                                 }
                             } else {
-                                if (\stripos(\explode(': ', $vv)[1] ?? "", $v) !== false) {
+                                if (false !== \stripos(\explode(': ', $vv)[1] ?? "", $v)) {
                                     yield $r => 1;
                                 }
                             }
@@ -42,7 +42,7 @@ function k(string $f, array $q = []) {
         }
         \closedir($h);
     }
-}
+};
 
 $q = \State::get('x.search.key');
 if ($query = \Get::get($q)) {
@@ -55,12 +55,12 @@ if ($query = \Get::get($q)) {
         $search = \array_merge([$query], \preg_split('/\s+/', $query));
         $search = \array_unique($search);
         $files = [];
-        foreach (k($folder, $search) as $k => $v) {
-            if ($v === 0) {
+        foreach ($search($folder, $search) as $k => $v) {
+            if (0 === $v) {
                 continue;
             }
             $a = \pathinfo($k);
-            if (!empty($a['filename']) && !empty($a['extension']) && $a['extension'] === 'page') {
+            if (!empty($a['filename']) && !empty($a['extension']) && 'page' === $a['extension']) {
                 $files[] = $k;
             }
         }
@@ -80,7 +80,7 @@ if ($query = \Get::get($q)) {
             $pager = new \Pager\Pages($pages->get(), [$chunk, $i], $url . $path);
             $GLOBALS['pager'] = $pager;
             $GLOBALS['pages'] = $pages = $pages->chunk($chunk, $i);
-            if ($pages->count() === 0) {
+            if (0 === $pages->count()) {
                 \State::set([
                     'has' => [
                         'page' => false,
@@ -93,7 +93,7 @@ if ($query = \Get::get($q)) {
                     ]
                 ]);
                 $this->status(404);
-                $this->content('404' . $path . '/' . ($i + 1));
+                $this->view('404' . $path . '/' . ($i + 1));
             }
             // Apply the hook only if there is a match
             require __DIR__ . \DS . 'hook.php';
@@ -107,7 +107,7 @@ if ($query = \Get::get($q)) {
                     'pages' => true
                 ]
             ]);
-            $this->content('pages' . $path . '/' . ($i + 1));
+            $this->view('pages' . $path . '/' . ($i + 1));
         });
     } else {
         \Route::over('*', function() use($url) {
@@ -124,7 +124,7 @@ if ($query = \Get::get($q)) {
             ]);
             // TODO: Use forbidden status code
             $this->status(404);
-            $this->content('404' . $url->path);
+            $this->layout('404' . $url->path);
         });
     }
     \State::set('is.search', true);
