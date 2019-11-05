@@ -1,7 +1,7 @@
 <?php namespace _\lot\x\search;
 
 // Just like the `\k` function but search only in the YAML value
-$search = function(string $f, array $q = []) {
+$get = function(string $f, array $q = []) {
     if (\is_dir($f) && $h = \opendir($f)) {
         while (false !== ($b = \readdir($h))) {
             if ('.' !== $b && '..' !== $b) {
@@ -55,7 +55,7 @@ if ($query = \Get::get($q)) {
         $search = \array_merge([$query], \preg_split('/\s+/', $query));
         $search = \array_unique($search);
         $files = [];
-        foreach ($search($folder, $search) as $k => $v) {
+        foreach ($get($folder, $search) as $k => $v) {
             if (0 === $v) {
                 continue;
             }
