@@ -18,6 +18,7 @@ $get = function(string $f, array $q = []) {
                     } else if (\is_file($r)) {
                         $content = false;
                         foreach (\stream($r) as $kk => $vv) {
+                            $vv = \trim($vv, "\n");
                             // Start of header, skip!
                             if (0 === $kk && '---' === $vv) {
                                 continue;
