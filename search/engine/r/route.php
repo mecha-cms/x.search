@@ -47,7 +47,7 @@ $get = function(string $f, array $q = []) {
 
 $q = \State::get('x.search.key');
 if ($query = \Get::get($q)) {
-    $folder = \PAGE . $url->path(\DS);
+    $folder = \LOT . \DS . 'page' . $url->path(\DS);
     $file = \File::exist([
         $folder . '.page',
         $folder . '.archive',
