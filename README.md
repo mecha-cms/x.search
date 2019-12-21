@@ -1,4 +1,9 @@
 Search Extension for Mecha
 ==========================
 
-> Find files by query.
+Release Notes
+-------------
+
+### 1.0.5
+
+ - Initial release.

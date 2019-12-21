@@ -13,7 +13,7 @@ use:
 
 Append `?q=search+query` to the pages URL to search pages by file name or file content.
 
-Add this snippet just before the `</header>` in `before.php` file of your active skin folder to add the default search form:
+Add this snippet just before the `</header>` in `header.php` file of your active layout folder to add the default search form:
 
 ~~~ .php
 <?= self::form('search'); ?>
