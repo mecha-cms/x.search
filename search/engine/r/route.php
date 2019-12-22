@@ -18,13 +18,12 @@ $get = function(string $f, array $q = []) {
                     } else if (\is_file($r)) {
                         $content = false;
                         foreach (\stream($r) as $kk => $vv) {
-                            $vv = \trim($vv, "\n");
                             // Start of header, skip!
-                            if (0 === $kk && '---' === $vv) {
+                            if (0 === $kk && "---\n" === $vv) {
                                 continue;
                             }
                             // End of header, now ignore any line(s) that looks like `key: value`
-                            if ('...' === $vv) {
+                            if ("...\n" === $vv) {
                                 $content = true;
                             }
                             if ($content) {
@@ -79,6 +78,7 @@ if ($query = \Get::get($q)) {
             $i = ($url['i'] ?? 1) - 1;
             $path = $url->path;
             $pager = new \Pager\Pages($pages->get(), [$chunk, $i], $url . $path);
+            $GLOBALS['page'] = $page;
             $GLOBALS['pager'] = $pager;
             $GLOBALS['pages'] = $pages = $pages->chunk($chunk, $i);
             if (0 === $pages->count()) {
@@ -99,6 +99,8 @@ if ($query = \Get::get($q)) {
             // Apply the hook only if there is a match
             require __DIR__ . \DS . 'hook.php';
             \State::set([
+                'chunk' => $chunk,
+                'deep' => 0,
                 'has' => [
                     'page' => true,
                     'pages' => true
