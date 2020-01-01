@@ -125,9 +125,8 @@ if ($query = \Get::get($q)) {
                     'pages' => false
                 ]
             ]);
-            // TODO: Use forbidden status code
             $this->status(404);
-            $this->layout('404' . $url->path);
+            $this->view('404' . $url->path);
         });
     }
     \State::set('is.search', true);
