@@ -26,6 +26,5 @@ function mark($content) {
 \Hook::set([
     'page.content',
     'page.description',
-    'page.excerpt', // `.\lot\x\excerpt`
     'page.title'
 ], __NAMESPACE__ . "\\mark", 2.1);
