@@ -18,7 +18,7 @@ function mark($content) {
                 $out .= $v;
             }
         }
-        return $out;
+        return "" !== $out ? $out : null;
     }
     return $content;
 }
