@@ -2,7 +2,8 @@
 
 // Highlight the matching part(s)
 function mark($content) {
-    if ($query = \preg_split('/\s+/', (string) \Get::get(\State::get('x.search.key')))) {
+    $key = \State::get('x.search.key') ?? 0;
+    if (0 !== $key && $query = \preg_split('/\s+/', (string) \Get::get($key))) {
         $parts = \preg_split('/(<[^>]+>)/', $content, null, \PREG_SPLIT_DELIM_CAPTURE | \PREG_SPLIT_NO_EMPTY);
         $out = "";
         foreach ($parts as $v) {

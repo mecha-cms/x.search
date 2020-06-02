@@ -44,8 +44,8 @@ $get = function(string $f, array $q = []) {
     }
 };
 
-$q = \State::get('x.search.key');
-if ($query = \Get::get($q)) {
+$key = \State::get('x.search.key') ?? 0;
+if (0 !== $key && $query = \Get::get($key)) {
     $folder = \LOT . \DS . 'page' . $url->path(\DS);
     $file = \File::exist([
         $folder . '.page',
@@ -70,7 +70,7 @@ if ($query = \Get::get($q)) {
         \arsort($files);
         $GLOBALS['t'][] = i('Search');
         $GLOBALS['t'][] = '&#x201C;' . $query . '&#x201D;';
-        \Route::over('*', function() use($file, $files, $url) {
+        \Route::hit('*', function() use($file, $files, $url) {
             $files = \array_keys($files);
             $page = new \Page($file);
             $pages = new \Pages($files);
@@ -113,7 +113,7 @@ if ($query = \Get::get($q)) {
             $this->view('pages' . $path . '/' . ($i + 1));
         });
     } else {
-        \Route::over('*', function() use($url) {
+        \Route::hit('*', function() use($url) {
             \State::set([
                 'has' => [
                     'page' => false,
