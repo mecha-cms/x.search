@@ -4,9 +4,9 @@ Search Extension for Mecha
 Release Notes
 -------------
 
-### 1.1.x
+### 1.1.0
 
- - Prepare for Mecha 2.3.0.
+ - For Mecha 2.3.0.
 
 ### 1.0.5
 
