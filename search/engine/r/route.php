@@ -93,8 +93,7 @@ if (0 !== $key && $query = \Get::get($key)) {
                         'pages' => false
                     ]
                 ]);
-                $this->status(404);
-                $this->view('404' . $path . '/' . ($i + 1));
+                $this->layout('404' . $path . '/' . ($i + 1));
             }
             // Apply the hook only if there is a match
             require __DIR__ . \DS . 'hook.php';
@@ -110,7 +109,7 @@ if (0 !== $key && $query = \Get::get($key)) {
                     'pages' => true
                 ]
             ]);
-            $this->view('pages' . $path . '/' . ($i + 1));
+            $this->layout('pages' . $path . '/' . ($i + 1));
         });
     } else {
         \Route::hit('*', function() use($url) {
@@ -125,8 +124,7 @@ if (0 !== $key && $query = \Get::get($key)) {
                     'pages' => false
                 ]
             ]);
-            $this->status(404);
-            $this->view('404' . $url->path);
+            $this->layout('404' . $url->path);
         });
     }
     \State::set('is.search', true);
