@@ -17,15 +17,15 @@ $get = function(string $f, array $q = []) {
                     // Find by query in page data…
                     } else if (\is_file($r)) {
                         $content = false;
-                        $soh = \defined("\\YAML\\SOH") ? \YAML\SOH : '---';
-                        $eot = \defined("\\YAML\\EOT") ? \YAML\EOT : '...';
+                        $start = \defined("\\YAML\\SOH") ? \YAML\SOH : '---';
+                        $end = \defined("\\YAML\\EOT") ? \YAML\EOT : '...';
                         foreach (\stream($r) as $kk => $vv) {
                             // Start of header, skip!
-                            if (0 === $kk && $soh . "\n" === $vv) {
+                            if (0 === $kk && $start . "\n" === $vv) {
                                 continue;
                             }
                             // End of header, now ignore any line(s) that looks like `key: value`
-                            if ($eot . "\n" === $vv) {
+                            if ($end . "\n" === $vv) {
                                 $content = true;
                             }
                             if ($content) {
