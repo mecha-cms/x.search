@@ -50,8 +50,8 @@ $key = \State::get('x.search.key') ?? 0;
 if (0 !== $key && $query = \Get::get($key)) {
     $folder = \LOT . \DS . 'page' . $url->path(\DS);
     $file = \File::exist([
-        $folder . '.page',
         $folder . '.archive',
+        $folder . '.page'
     ]);
     if ($file) {
         $search = \array_merge([$query], \preg_split('/\s+/', $query));
