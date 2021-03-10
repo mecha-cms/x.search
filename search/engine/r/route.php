@@ -1,4 +1,4 @@
-<?php namespace _\lot\x\search;
+<?php namespace x\search;
 
 // Just like the `\k` function but search only in the YAML value
 $get = function(string $f, array $q = []) {

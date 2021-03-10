@@ -1,4 +1,4 @@
-<?php namespace _\lot\x\search;
+<?php namespace x\search;
 
 // Highlight the matching part(s)
 function mark($content) {
