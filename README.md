@@ -4,9 +4,9 @@ Search Extension for Mecha
 Release Notes
 -------------
 
-### main
+### 1.2.2
 
- - [x] [@mecha-cms/mecha#96](https://github.com/mecha-cms/mecha/issues/96)
+ - [@mecha-cms/mecha#96](https://github.com/mecha-cms/mecha/issues/96)
 
 ### 1.2.1
 
