@@ -1,5 +1,5 @@
-Search Extension for Mecha
-==========================
+Search Extension for [Mecha](https://github.com/mecha-cms/mecha)
+================================================================
 
 Release Notes
 -------------
