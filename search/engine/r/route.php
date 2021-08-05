@@ -1,7 +1,7 @@
 <?php namespace x\search;
 
 // Just like the `\k` function but search only in the YAML value
-$get = function(string $f, array $q = []) {
+$get = static function(string $f, array $q = []) {
     if (\is_dir($f) && $h = \opendir($f)) {
         while (false !== ($b = \readdir($h))) {
             if ('.' !== $b && '..' !== $b) {
@@ -47,8 +47,9 @@ $get = function(string $f, array $q = []) {
 };
 
 $key = \State::get('x.search.key') ?? 0;
+$path = $url->path;
 if (0 !== $key && $query = \Get::get($key)) {
-    $folder = \LOT . \DS . 'page' . $url->path(\DS);
+    $folder = \LOT . \DS . 'page' . $path;
     $file = \File::exist([
         $folder . '.archive',
         $folder . '.page'
@@ -70,15 +71,12 @@ if (0 !== $key && $query = \Get::get($key)) {
         $files = \array_count_values($files);
         // Then sort them reversed to put the most captured item(s) on top
         \arsort($files);
-        $GLOBALS['t'][] = i('Search');
-        $GLOBALS['t'][] = '&#x201C;' . $query . '&#x201D;';
-        \Route::hit('*', function() use($file, $files, $url) {
+        \Route::hit('*', function() use($file, $files, $path, $query, $url) {
             $files = \array_keys($files);
             $page = new \Page($file);
             $pages = new \Pages($files);
             $chunk = $page['chunk'];
             $i = ($url['i'] ?? 1) - 1;
-            $path = $url->path;
             $pager = new \Pager\Pages($pages->get(), [$chunk, $i], $url . $path);
             $GLOBALS['page'] = $page;
             $GLOBALS['pager'] = $pager;
@@ -95,6 +93,7 @@ if (0 !== $key && $query = \Get::get($key)) {
                         'pages' => false
                     ]
                 ]);
+                $GLOBALS['t'][] = \i('Error');
                 $this->layout('404' . $path . '/' . ($i + 1));
             }
             // Apply the hook only if there is a match
@@ -108,13 +107,16 @@ if (0 !== $key && $query = \Get::get($key)) {
                 ],
                 'is' => [
                     'page' => false,
-                    'pages' => true
+                    'pages' => true,
+                    'search' => true
                 ]
             ]);
+            $GLOBALS['t'][] = i('Search');
+            $GLOBALS['t'][] = '&#x201C;' . $query . '&#x201D;';
             $this->layout('pages' . $path . '/' . ($i + 1));
         });
     } else {
-        \Route::hit('*', function() use($url) {
+        \Route::hit('*', function() use($path, $url) {
             \State::set([
                 'has' => [
                     'page' => false,
@@ -126,8 +128,8 @@ if (0 !== $key && $query = \Get::get($key)) {
                     'pages' => false
                 ]
             ]);
-            $this->layout('404' . $url->path);
+            $GLOBALS['t'][] = \i('Error');
+            $this->layout('404' . $path);
         });
     }
-    \State::set('is.search', true);
 }
