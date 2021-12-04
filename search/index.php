@@ -94,7 +94,7 @@ if (0 !== $key && $query = \get($_GET, $key)) {
         // Then sort them reversed to put the most captured item(s) on top
         \arsort($files);
         $files = \array_keys($files);
-        \Hook::set('route.search', function($search, $path) use($file, $files, $query, $url) {
+        \Hook::set('route.search', function($name, $path) use($file, $files, $url) {
             if ($path && \preg_match('/^(.*?)\/([1-9]\d*)$/', $path, $m)) {
                 [$any, $path, $i] = $m;
             }
@@ -132,8 +132,7 @@ if (0 !== $key && $query = \get($_GET, $key)) {
                 'deep' => 0,
                 'has' => [
                     'page' => true,
-                    'pages' => true,
-                    'results' => \count($files)
+                    'pages' => true
                 ],
                 'is' => [
                     'page' => false,
@@ -142,11 +141,11 @@ if (0 !== $key && $query = \get($_GET, $key)) {
                 ]
             ]);
             $GLOBALS['t'][] = i('Search');
-            $GLOBALS['t'][] = '&#x201C;' . $query . '&#x201D;';
+            $GLOBALS['t'][] = '&#x201C;' . $name . '&#x201D;';
             \Hook::fire('layout', ['pages/' . $path . '/' . ($i + 1)]);
         }, 20);
     } else {
-        \Hook::set('route.search', function($search, $path) use($url) {
+        \Hook::set('route.search', function($name, $path) {
             \State::set([
                 'has' => [
                     'page' => false,
@@ -162,9 +161,11 @@ if (0 !== $key && $query = \get($_GET, $key)) {
             \Hook::fire('layout', ['404/' . $path]);
         }, 20);
     }
-    \Hook::set('route.page', function($path, $query, $hash) use($search) {
-        \Hook::fire('route.search', [$search, $path, $query, $hash]);
-    }, 10);
+    if ("" !== ($q = (string) $query)) {
+        \Hook::set('route.page', function($path, $query, $hash) use($q) {
+            \Hook::fire('route.search', [$q, $path, $query, $hash]);
+        }, 10);
+    }
 }
 
 if (!\is_file(\LOT . \D . 'layout' . \D . 'form' . \D . 'search.php')) {

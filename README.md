@@ -6,10 +6,8 @@ Release Notes
 
 ### 2.0.0
 
- - [x] Added `$site->has('results')` conditional statement (this statement returns the search results length).
- - [x] Added `has:results` class.
- - [x] Changed `$site->is('search')` conditional statement with `$site->is('results')` (prefers noun).
- - [x] Changed `is:search` class with `is:results`.
+ - [x] Changed `$site->is('search')` conditional statement to `$site->is('results')` (prefers noun).
+ - [x] Changed `is:search` class to `is:results`.
  - [x] Updated for Mecha 3.0.0.
 
 ### 1.2.3
