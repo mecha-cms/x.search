@@ -3,7 +3,7 @@ title: Search
 description: Find files by query.
 author: Taufik Nurrohman
 type: Markdown
-version: 1.2.3
+version: 2.0.0
 
 use:
   '.\lot\x\page': 1
@@ -23,10 +23,10 @@ Add this snippet just before the `</header>` in `header.php` file of your active
 
 These page conditional statements are available to quickly determine the type of page we are currently in:
 
- - `$site->is('search')` → Return `true` if current page is a search results page.
+ - `$site->is('results')` → Return `true` if current page is a search results page.
 
 ### Classes
 
 These HTML classes will be added to the `<html>` element that has a `class` attribute:
 
- - `is:search` → Will be added on search results page.
+ - `is:results` → Will be added on search results page.
