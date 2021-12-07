@@ -23,10 +23,10 @@ Add this snippet just before the `</header>` in `header.php` file of your active
 
 These page conditional statements are available to quickly determine the type of page we are currently in:
 
- - `$site->is('results')` → Return `true` if current page is a search results page.
+ - `$site->has('query')` → Return `true` if current page is a search results page.
 
 ### Classes
 
 These HTML classes will be added to the `<html>` element that has a `class` attribute:
 
- - `is:results` → Will be added on search results page.
+ - `has:query` → Will be added on search results page.

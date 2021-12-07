@@ -6,8 +6,8 @@ Release Notes
 
 ### 2.0.0
 
- - [x] Changed `$site->is('search')` conditional statement to `$site->is('results')` (prefers noun).
- - [x] Changed `is:search` class to `is:results`.
+ - [x] Changed `$site->is('search')` conditional statement to `$site->has('query')` (prefers noun).
+ - [x] Changed `is:search` class to `has:query`.
  - [x] Updated for Mecha 3.0.0.
 
 ### 1.2.3

@@ -132,12 +132,12 @@ if (0 !== $key && $query = \get($_GET, $key)) {
                 'deep' => 0,
                 'has' => [
                     'page' => true,
-                    'pages' => true
+                    'pages' => true,
+                    'query' => true
                 ],
                 'is' => [
                     'page' => false,
-                    'pages' => true,
-                    'results' => true
+                    'pages' => true
                 ]
             ]);
             $GLOBALS['t'][] = i('Search');
