@@ -8,6 +8,7 @@ Release Notes
 
  - [x] Changed `$site->is('search')` conditional statement to `$site->has('query')` (prefers noun).
  - [x] Changed `is:search` class to `has:query`.
+ - [x] Changed default search query key from `q` to `query`.
  - [x] Updated for Mecha 3.0.0.
 
 ### 1.2.3

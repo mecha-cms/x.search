@@ -1,3 +1,3 @@
 <?php
 
-return ['key' => 'q'];
+return ['key' => 'query'];
