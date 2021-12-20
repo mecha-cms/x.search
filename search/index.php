@@ -71,7 +71,7 @@ function mark($content) {
 
 $key = \State::get('x.search.key') ?? 0;
 $path = $url->path;
-if (0 !== $key && $query = \get($_GET, $key)) {
+if (0 !== $key && null !== ($query = \get($_GET, $key))) {
     $folder = \LOT . \D . 'page' . \strtr($path, '/', \D);
     if ($file = \exist([
         $folder . '.archive',
@@ -119,7 +119,8 @@ if (0 !== $key && $query = \get($_GET, $key)) {
                     ]
                 ]);
                 $GLOBALS['t'][] = \i('Error');
-                \Hook::fire('layout', ['404/' . $path . '/' . ($i + 1)]);
+                \status(404);
+                \Hook::fire('layout', ['error/' . $path . '/' . ($i + 1)]);
             }
             // Apply the hook only if there is a match
             \Hook::set([
@@ -142,6 +143,7 @@ if (0 !== $key && $query = \get($_GET, $key)) {
             ]);
             $GLOBALS['t'][] = i('Search');
             $GLOBALS['t'][] = '&#x201C;' . $name . '&#x201D;';
+            \status(200);
             \Hook::fire('layout', ['pages/' . $path . '/' . ($i + 1)]);
         }, 20);
     } else {
@@ -158,7 +160,8 @@ if (0 !== $key && $query = \get($_GET, $key)) {
                 ]
             ]);
             $GLOBALS['t'][] = \i('Error');
-            \Hook::fire('layout', ['404/' . $path]);
+            \status(404);
+            \Hook::fire('layout', ['error/' . $path]);
         }, 20);
     }
     if ("" !== ($q = (string) $query)) {
