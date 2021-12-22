@@ -145,7 +145,7 @@ if (0 !== $key && null !== ($query = \get($_GET, $key))) {
             $GLOBALS['t'][] = '&#x201C;' . $name . '&#x201D;';
             \status(200);
             \Hook::fire('layout', ['pages/' . $path . '/' . ($i + 1)]);
-        }, 20);
+        }, 100);
     } else {
         \Hook::set('route.search', function($name, $path) {
             \State::set([
@@ -162,12 +162,12 @@ if (0 !== $key && null !== ($query = \get($_GET, $key))) {
             $GLOBALS['t'][] = \i('Error');
             \status(404);
             \Hook::fire('layout', ['error/' . $path]);
-        }, 20);
+        }, 100);
     }
     if ("" !== ($q = (string) $query)) {
         \Hook::set('route.page', function($path, $query, $hash) use($q) {
             \Hook::fire('route.search', [$q, $path, $query, $hash]);
-        }, 10);
+        }, 90);
     }
 }
 
