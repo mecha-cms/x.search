@@ -49,7 +49,7 @@ function k(string $f, array $q = []) {
 function mark($content) {
     $key = \State::get('x.search.key') ?? 0;
     if (0 !== $key && $query = \preg_split('/\s+/', (string) \get($_GET, $key))) {
-        $parts = \preg_split('/(<[^>]+>)/', $content, null, \PREG_SPLIT_DELIM_CAPTURE | \PREG_SPLIT_NO_EMPTY);
+        $parts = \preg_split('/(<[^>]+>)/', $content, -1, \PREG_SPLIT_DELIM_CAPTURE | \PREG_SPLIT_NO_EMPTY);
         $out = "";
         foreach ($parts as $v) {
             if ($v && '<' === $v[0] && '>' === \substr($v, -1)) {
