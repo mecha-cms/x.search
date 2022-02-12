@@ -94,9 +94,9 @@ if (0 !== $key && null !== ($query = \get($_GET, $key))) {
         // Then sort them reversed to put the most captured item(s) on top
         \arsort($files);
         $files = \array_keys($files);
-        \Hook::set('route.search', function($r, $path) use($file, $files, $url) {
-            if (isset($r['content']) || isset($r['kick']) || isset($r['layout']) || isset($r['path'])) {
-                return $r;
+        \Hook::set('route.search', function($content, $path, $query, $hash, $r) use($file, $files, $url) {
+            if (null !== $content) {
+                return $content;
             }
             if ($path && \preg_match('/^(.*?)\/([1-9]\d*)$/', $path, $m)) {
                 [$any, $path, $i] = $m;
@@ -122,9 +122,7 @@ if (0 !== $key && null !== ($query = \get($_GET, $key))) {
                     ]
                 ]);
                 $GLOBALS['t'][] = \i('Error');
-                $r['layout'] = 'error/' . $path . '/' . ($i + 1);
-                $r['status'] = 404;
-                return $r;
+                return \Layout::error($path . '/' . ($i + 1), [], 404);
             }
             // Apply the hook only if there is a match
             \Hook::set([
@@ -147,14 +145,12 @@ if (0 !== $key && null !== ($query = \get($_GET, $key))) {
             ]);
             $GLOBALS['t'][] = i('Search');
             $GLOBALS['t'][] = '&#x201C;' . $r['query'] . '&#x201D;';
-            $r['layout'] = 'pages/' . $path . '/' . ($i + 1);
-            $r['status'] = 200;
-            return $r;
+            return \Layout::pages($path . '/' . ($i + 1), [], 200);
         }, 100);
     } else {
-        \Hook::set('route.search', function($r, $path) {
-            if (isset($r['content']) || isset($r['kick']) || isset($r['layout']) || isset($r['path'])) {
-                return $r;
+        \Hook::set('route.search', function($content, $path, $query, $hash, $r) {
+            if (null !== $content) {
+                return $content;
             }
             \State::set([
                 'has' => [
@@ -168,15 +164,13 @@ if (0 !== $key && null !== ($query = \get($_GET, $key))) {
                 ]
             ]);
             $GLOBALS['t'][] = \i('Error');
-            $r['layout'] = 'error/' . $path;
-            $r['status'] = 404;
-            return $r;
+            return \Layout::error($path, [], 404);
         }, 100);
     }
     if ("" !== ($q = (string) $query)) {
-        \Hook::set('route.page', function($r, $path, $query, $hash) use($q) {
+        \Hook::set('route.page', function($content, $path, $query, $hash) use($q) {
             $r['query'] = $q;
-            return \Hook::fire('route.search', [$r, $path, $query, $hash]);
+            return \Hook::fire('route.search', [$content, $path, $query, $hash, $r]);
         }, 90);
     }
 }
