@@ -95,7 +95,7 @@ if (0 !== $key && null !== ($query = \get($_GET, $key))) {
         \arsort($files);
         $files = \array_keys($files);
         \Hook::set('route.search', function($r, $path) use($file, $files, $url) {
-            if (isset($r['content']) || isset($r['kick'])) {
+            if (isset($r['content']) || isset($r['kick']) || isset($r['layout']) || isset($r['path'])) {
                 return $r;
             }
             if ($path && \preg_match('/^(.*?)\/([1-9]\d*)$/', $path, $m)) {
@@ -122,7 +122,7 @@ if (0 !== $key && null !== ($query = \get($_GET, $key))) {
                     ]
                 ]);
                 $GLOBALS['t'][] = \i('Error');
-                $r['content'] = \Hook::fire('layout', ['error/' . $path . '/' . ($i + 1)]);
+                $r['layout'] = 'error/' . $path . '/' . ($i + 1);
                 $r['status'] = 404;
                 return $r;
             }
@@ -147,13 +147,13 @@ if (0 !== $key && null !== ($query = \get($_GET, $key))) {
             ]);
             $GLOBALS['t'][] = i('Search');
             $GLOBALS['t'][] = '&#x201C;' . $r['query'] . '&#x201D;';
-            $r['content'] = \Hook::fire('layout', ['pages/' . $path . '/' . ($i + 1)]);
+            $r['layout'] = 'pages/' . $path . '/' . ($i + 1);
             $r['status'] = 200;
             return $r;
         }, 100);
     } else {
         \Hook::set('route.search', function($r, $path) {
-            if (isset($r['content']) || isset($r['kick'])) {
+            if (isset($r['content']) || isset($r['kick']) || isset($r['layout']) || isset($r['path'])) {
                 return $r;
             }
             \State::set([
@@ -168,7 +168,7 @@ if (0 !== $key && null !== ($query = \get($_GET, $key))) {
                 ]
             ]);
             $GLOBALS['t'][] = \i('Error');
-            $r['content'] = \Hook::fire('layout', ['error/' . $path]);
+            $r['layout'] = 'error/' . $path;
             $r['status'] = 404;
             return $r;
         }, 100);
