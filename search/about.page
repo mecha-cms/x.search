@@ -12,7 +12,7 @@ use:
 
 ### Usage
 
-Append `?q=search+query` to the pages URL to search pages by file name or file content.
+Append `?query=search+query` to the pages URL to search pages by file name or file content.
 
 Add this snippet just before the `</header>` in `header.php` file of your active layout to add the default search form:
 
