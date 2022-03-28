@@ -122,7 +122,7 @@ if (0 !== $key && null !== ($query = \get($_GET, $key))) {
                     ]
                 ]);
                 $GLOBALS['t'][] = \i('Error');
-                return \Layout::error($path . '/' . ($i + 1), [], 404);
+                return \Y::error($path . '/' . ($i + 1), [], 404);
             }
             // Apply the hook only if there is a match
             \Hook::set([
@@ -145,7 +145,7 @@ if (0 !== $key && null !== ($query = \get($_GET, $key))) {
             ]);
             $GLOBALS['t'][] = i('Search');
             $GLOBALS['t'][] = '&#x201C;' . $r['query'] . '&#x201D;';
-            return \Layout::pages($path . '/' . ($i + 1), [], 200);
+            return \Y::pages($path . '/' . ($i + 1), [], 200);
         }, 100);
     } else {
         \Hook::set('route.search', function($content, $path, $query, $hash, $r) {
@@ -164,7 +164,7 @@ if (0 !== $key && null !== ($query = \get($_GET, $key))) {
                 ]
             ]);
             $GLOBALS['t'][] = \i('Error');
-            return \Layout::error($path, [], 404);
+            return \Y::error($path, [], 404);
         }, 100);
     }
     if ("" !== ($q = (string) $query)) {
@@ -175,6 +175,4 @@ if (0 !== $key && null !== ($query = \get($_GET, $key))) {
     }
 }
 
-if (!\is_file(\LOT . \D . 'layout' . \D . 'form' . \D . 'search.php')) {
-    \Layout::set('form/search', __DIR__ . \D . 'lot' . \D . 'layout' . \D . 'form' . \D . 'search.php');
-}
+!\Y::path('form/search') && \Y::set('form/search', __DIR__ . \D . 'lot' . \D . 'y' . \D . 'form' . \D . 'search.php');
