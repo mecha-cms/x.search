@@ -122,7 +122,7 @@ if (0 !== $key && null !== ($query = \get($_GET, $key))) {
                     ]
                 ]);
                 $GLOBALS['t'][] = \i('Error');
-                return ['error', [], 404];
+                return ['page', [], 404];
             }
             // Apply the hook only if there is a match
             \Hook::set([
@@ -164,7 +164,7 @@ if (0 !== $key && null !== ($query = \get($_GET, $key))) {
                 ]
             ]);
             $GLOBALS['t'][] = \i('Error');
-            return ['error', [], 404];
+            return ['page', [], 404];
         }, 100);
     }
     if ("" !== ($q = (string) $query)) {
@@ -175,4 +175,6 @@ if (0 !== $key && null !== ($query = \get($_GET, $key))) {
     }
 }
 
-!\Layout::path('form/search') && \Layout::set('form/search', __DIR__ . \D . 'engine' . \D . 'y' . \D . 'form' . \D . 'search.php');
+if (\class_exists("\\Layout")) {
+    !\Layout::path('form/search') && \Layout::set('form/search', __DIR__ . \D . 'engine' . \D . 'y' . \D . 'form' . \D . 'search.php');
+}
