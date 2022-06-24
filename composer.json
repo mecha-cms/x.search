@@ -1,0 +1,8 @@
+{
+  "description": "Find files by query.",
+  "license": "GPL-3.0-or-later",
+  "name": "mecha-cms/x.search",
+  "require": {
+    "mecha-cms/x.page": "^2.0.0"
+  }
+}
