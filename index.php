@@ -94,7 +94,7 @@ if (0 !== $key && null !== ($query = \get($_GET, $key))) {
         // Then sort them reversed to put the most captured item(s) on top
         \arsort($files);
         $files = \array_keys($files);
-        \Hook::set('route.search', function($content, $path, $query, $hash, $r) use($file, $files, $url) {
+        \Hook::set('route.search', function ($content, $path, $query, $hash, $r) use ($file, $files, $url) {
             if (null !== $content) {
                 return $content;
             }
@@ -148,7 +148,7 @@ if (0 !== $key && null !== ($query = \get($_GET, $key))) {
             return ['pages', [], 200];
         }, 100);
     } else {
-        \Hook::set('route.search', function($content, $path, $query, $hash, $r) {
+        \Hook::set('route.search', function ($content, $path, $query, $hash, $r) {
             if (null !== $content) {
                 return $content;
             }
@@ -168,7 +168,7 @@ if (0 !== $key && null !== ($query = \get($_GET, $key))) {
         }, 100);
     }
     if ("" !== ($q = (string) $query)) {
-        \Hook::set('route.page', function($content, $path, $query, $hash) use($q) {
+        \Hook::set('route.page', function ($content, $path, $query, $hash) use ($q) {
             $r['query'] = $q;
             return \Hook::fire('route.search', [$content, $path, $query, $hash, $r]);
         }, 90);
