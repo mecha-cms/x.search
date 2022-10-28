@@ -70,9 +70,12 @@ function mark($content) {
 }
 
 $key = \State::get('x.search.key') ?? 0;
-$path = $url->path;
+$path = \trim($url->path ?? "", '/');
+if ($path && \preg_match('/^(.*?)\/([1-9]\d*)$/', $path, $m)) {
+    [$any, $path, $i] = $m;
+}
 if (0 !== $key && null !== ($query = \get($_GET, $key))) {
-    $folder = \LOT . \D . 'page' . \strtr($path, '/', \D);
+    $folder = \LOT . \D . 'page' . \D . \strtr($path, '/', \D);
     if ($file = \exist([
         $folder . '.archive',
         $folder . '.page'
@@ -98,14 +101,18 @@ if (0 !== $key && null !== ($query = \get($_GET, $key))) {
             if (null !== $content) {
                 return $content;
             }
+            \extract($GLOBALS, \EXTR_SKIP);
+            $path = \trim($path ?? "", '/');
             if ($path && \preg_match('/^(.*?)\/([1-9]\d*)$/', $path, $m)) {
                 [$any, $path, $i] = $m;
             }
+            $i = ((int) ($i ?? 1)) - 1;
             $page = new \Page($file);
             $pages = new \Pages($files);
             $chunk = $page['chunk'];
-            $i = ((int) ($i ?? 1)) - 1;
-            $pager = new \Pager\Pages($pages->get(), [$chunk, $i], $url . '/' . $path);
+            $pager = new \Pager\Pages($pages->get(), [$chunk, $i], new \Page(null, [
+                'link' => $url . '/' . $path
+            ]));
             $GLOBALS['page'] = $page;
             $GLOBALS['pager'] = $pager;
             $GLOBALS['pages'] = $pages = $pages->chunk($chunk, $i);
