@@ -131,8 +131,8 @@ if (0 !== $key && null !== ($query = \get($_GET, $key))) {
                     ],
                     'is' => [
                         'error' => 404,
-                        'page' => true,
-                        'pages' => false
+                        'page' => false,
+                        'pages' => true
                     ],
                     'part' => $part + 1
                 ]);
@@ -176,8 +176,8 @@ if (0 !== $key && null !== ($query = \get($_GET, $key))) {
                 ],
                 'is' => [
                     'error' => 404,
-                    'page' => true,
-                    'pages' => false
+                    'page' => false,
+                    'pages' => true
                 ]
             ]);
             $GLOBALS['t'][] = \i('Error');
