@@ -27,6 +27,7 @@ function route($content, $path, $query, $hash) {
     $key = \State::get('x.search.key') ?? 0;
     if (0 !== $key && null !== ($search = \get($_GET, $key))) {
         \extract($GLOBALS, \EXTR_SKIP);
+        \State::set('has.query', true);
         if (isset($page) && $page->exist && isset($pages) && $pages->count) {
             $chunk = $state->chunk ?? $page->chunk ?? 5;
             $part = ($state->part ?? 1) - 1;
