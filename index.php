@@ -1,51 +1,5 @@
 <?php namespace x\search;
 
-// Just like the `\k` function but search only in the YAML value
-function k(string $f, array $q = []) {
-    if (\is_dir($f) && $h = \opendir($f)) {
-        while (false !== ($b = \readdir($h))) {
-            if ('.' !== $b && '..' !== $b) {
-                $n = \pathinfo($b, \PATHINFO_FILENAME);
-                foreach ($q as $v) {
-                    if (empty($v) && '0' !== $v) {
-                        continue;
-                    }
-                    $r = $f . \D . $b;
-                    // Find by query in file name…
-                    if (false !== \stripos($n, $v)) {
-                        yield $r => \is_dir($r) ? 0 : 1;
-                    // Find by query in page data…
-                    } else if (\is_file($r)) {
-                        $content = false;
-                        $start = \defined("\\YAML\\SOH") ? \YAML\SOH : '---';
-                        $end = \defined("\\YAML\\EOT") ? \YAML\EOT : '...';
-                        foreach (\stream($r) as $kk => $vv) {
-                            // Start of header, skip!
-                            if (0 === $kk && $start . "\n" === $vv) {
-                                continue;
-                            }
-                            // End of header, now ignore any line(s) that looks like `key: value`
-                            if ($end . "\n" === $vv) {
-                                $content = true;
-                            }
-                            if ($content) {
-                                if (false !== \stripos($vv, $v)) {
-                                    yield $r => 1;
-                                }
-                            } else {
-                                if (false !== \stripos(\explode(': ', $vv)[1] ?? "", $v)) {
-                                    yield $r => 1;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        \closedir($h);
-    }
-}
-
 function mark($content) {
     $key = \State::get('x.search.key') ?? 0;
     if (0 !== $key && $query = \preg_split('/\s+/', (string) \get($_GET, $key))) {
@@ -69,128 +23,91 @@ function mark($content) {
     return $content;
 }
 
-$key = \State::get('x.search.key') ?? 0;
-$path = \trim($url->path ?? "", '/');
-if ($path && \preg_match('/^(.*?)\/([1-9]\d*)$/', $path, $m)) {
-    [$any, $path, $part] = $m;
-}
-if (0 !== $key && null !== ($query = \get($_GET, $key))) {
-    $folder = \LOT . \D . 'page' . \D . \strtr($path, '/', \D);
-    if ($file = \exist([
-        $folder . '.archive',
-        $folder . '.page'
-    ], 1)) {
-        $search = \array_merge([$query], \preg_split('/\s+/', $query));
-        $search = \array_unique($search);
-        $files = [];
-        foreach (k($folder, $search) as $k => $v) {
-            if (0 === $v) {
-                continue;
-            }
-            $a = \pathinfo($k);
-            if (!empty($a['filename']) && !empty($a['extension']) && 'page' === $a['extension']) {
-                $files[] = $k;
-            }
-        }
-        // Check how much duplicate path captured in `$files` after doing the search
-        $files = \array_count_values($files);
-        // Then sort them reversed to put the most captured item(s) on top
-        \arsort($files);
-        $files = \array_keys($files);
-        \Hook::set('route.search', function ($content, $path, $query, $hash) use ($file, $files, $key, $url) {
-            if (null !== $content) {
-                return $content;
-            }
-            \extract($GLOBALS, \EXTR_SKIP);
-            $name = \From::query($query)['query'] ?? "";
-            $path = \trim($path ?? "", '/');
-            if ($path && \preg_match('/^(.*?)\/([1-9]\d*)$/', $path, $m)) {
-                [$any, $path, $part] = $m;
-            }
-            $part = ((int) ($part ?? 1)) - 1;
-            $page = new \Page($file);
-            $pages = new \Pages($files);
-            $chunk = $page['chunk'];
-            $pager = new \Pager($pages);
+function route($content, $path, $query, $hash) {
+    $key = \State::get('x.search.key') ?? 0;
+    if (0 !== $key && null !== ($search = \get($_GET, $key))) {
+        \extract($GLOBALS, \EXTR_SKIP);
+        if (isset($page) && $page->exist && isset($pages) && $pages->count) {
+            $chunk = $state->chunk ?? $page->chunk ?? 5;
+            $part = ($state->part ?? 1) - 1;
+            $pages = $pages->parent->is(function ($v) use ($search) {
+                $content = $v['content'] ?? $v->content ?? "";
+                $description = $v['description'] ?? $v->description ?? "";
+                $name = $v['name'] ?? $v->name ?? "";
+                $title = $v['title'] ?? $v->title ?? "";
+                foreach (\preg_split('/\s+/', $search, -1, \PREG_SPLIT_NO_EMPTY) as $q) {
+                    // Priority: `name`, `title`, `description`, `content`
+                    if ($name && false !== \stripos($name, $q)) {
+                        return true;
+                    }
+                    if ($title && false !== \stripos($title, $q)) {
+                        return true;
+                    }
+                    if ($description && false !== \stripos($description, $q)) {
+                        return true;
+                    }
+                    if ($content && false !== \stripos($content, $q)) {
+                        return true;
+                    }
+                }
+                return false;
+            });
+            \State::set('count', $count = $pages->count);
+            $pager = \Pager::from($pages);
             $pager->hash = $hash;
-            $pager->path = $path;
-            // Need to use custom query string instead of the default query string passed by `$query` variable as this
-            // query string contains the search query parameter generated by the base `route.page` hook that may cause
-            // the query string to be doubled if current query key value has been set to a value other than `query`
-            $pager->query = \To::query([$key => $name]);
-            $GLOBALS['page'] = $page;
+            $pager->path = \preg_replace('/\/' . \x($part + 1) . '$/', "", $path);
+            $pager->query = $query;
             $GLOBALS['pager'] = $pager = $pager->chunk($chunk, $part);
             $GLOBALS['pages'] = $pages = $pages->chunk($chunk, $part);
-            if (0 === $pages->count()) {
+            if (0 === $count) {
                 \State::set([
-                    'chunk' => $chunk,
                     'has' => [
+                        'next' => false,
                         'page' => false,
                         'pages' => false,
-                        'part' => !!($part + 1)
+                        'parent' => false,
+                        'prev' => false
                     ],
                     'is' => [
                         'error' => 404,
                         'page' => false,
                         'pages' => true
-                    ],
-                    'part' => $part + 1
+                    ]
                 ]);
-                $GLOBALS['t'][] = \i('Error');
-                return ['page', [], 404];
+                $GLOBALS['t'][] = i('Error');
+                return ['pages', [], 404];
             }
+            \State::set([
+                'has' => [
+                    'next' => !!$pager->next,
+                    'page' => true,
+                    'pages' => true,
+                    'parent' => !!$page->parent,
+                    'part' => !!($part + 1),
+                    'prev' => !!$pager->prev
+                ],
+                'is' => [
+                    'error' => false,
+                    'page' => false,
+                    'pages' => true
+                ]
+            ]);
             // Apply the hook only if there is a match
             \Hook::set([
                 'page.content',
                 'page.description',
                 'page.title'
             ], __NAMESPACE__ . "\\mark", 2.1);
-            \State::set([
-                'chunk' => $chunk,
-                'deep' => 0,
-                'has' => [
-                    'page' => true,
-                    'pages' => true,
-                    'part' => !!($part + 1),
-                    'query' => true
-                ],
-                'is' => [
-                    'page' => false,
-                    'pages' => true
-                ],
-                'part' => $part + 1
-            ]);
-            $GLOBALS['t'][] = i('Search');
-            $GLOBALS['t'][] = '&#x201c;' . $name . '&#x201d;';
             return ['pages', [], 200];
-        }, 100);
-    } else {
-        \Hook::set('route.search', function ($content, $path, $query, $hash) {
-            if (null !== $content) {
-                return $content;
-            }
-            \State::set([
-                'has' => [
-                    'page' => false,
-                    'pages' => false
-                ],
-                'is' => [
-                    'error' => 404,
-                    'page' => false,
-                    'pages' => true
-                ]
-            ]);
-            $GLOBALS['t'][] = \i('Error');
-            return ['page', [], 404];
-        }, 100);
-    }
-    if ("" !== ($q = (string) $query)) {
-        \Hook::set('route.page', function ($content, $path, $query, $hash) use ($q) {
-            $query = \To::query(\array_replace(\From::query($query), ['query' => $q]));
-            return \Hook::fire('route.search', [$content, $path, $query, $hash]);
-        }, 90);
+        }
     }
 }
+
+\Hook::set('route.page', function ($content, $path, $query, $hash) {
+    return \Hook::fire('route.search', [$content, $path, $query, $hash]);
+}, 100.1);
+
+\Hook::set('route.search', __NAMESPACE__ . "\\route", 100);
 
 if (\class_exists("\\Layout")) {
     !\Layout::path('form/search') && \Layout::set('form/search', __DIR__ . \D . 'engine' . \D . 'y' . \D . 'form' . \D . 'search.php');
