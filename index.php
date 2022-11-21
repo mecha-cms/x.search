@@ -161,7 +161,7 @@ if (0 !== $key && null !== ($query = \get($_GET, $key))) {
                 'part' => $part + 1
             ]);
             $GLOBALS['t'][] = i('Search');
-            $GLOBALS['t'][] = '&#x201C;' . $name . '&#x201D;';
+            $GLOBALS['t'][] = '&#x201c;' . $name . '&#x201d;';
             return ['pages', [], 200];
         }, 100);
     } else {
