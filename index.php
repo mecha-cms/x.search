@@ -1,6 +1,9 @@
 <?php namespace x\search;
 
 function mark($content) {
+    if (!$content || !\is_string($content)) {
+        return $content;
+    }
     $key = \State::get('x.search.key') ?? 0;
     if (0 !== $key && $query = \preg_split('/\s+/', (string) \get($_GET, $key))) {
         $parts = \preg_split('/(<[^>]+>)/', $content, -1, \PREG_SPLIT_DELIM_CAPTURE | \PREG_SPLIT_NO_EMPTY);
