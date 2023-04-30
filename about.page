@@ -18,14 +18,14 @@ Add this snippet just before the `</header>` in `header.php` file of your active
 <?= self::form('search'); ?>
 ~~~
 
-### Conditions
+~~~ .php
+<?= self::form('search', [
+    'key' => 'search.term', // Custom search query
+    'route' => '/product/zoids' // Custom search context
+]); ?>
+~~~
 
-These page conditional statements are available to quickly determine the type of page we are currently in:
+This page conditional statement is available to quickly determine the type of page we are currently in:
 
- - `$site->has('query')` → Return `true` if current page is a search results page.
-
-### Classes
-
-These HTML classes will be added to the `<html>` element that has a `class` attribute:
-
- - `has:query` → Will be added on search results page.
+`$site->has('query')`
+: Return `true` if current page is a search results page.
