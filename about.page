@@ -15,14 +15,26 @@ Append `?query=search+query` to the pages URL to search pages by file name or fi
 Add this snippet just before the `</header>` in `header.php` file of your active layout to add the default search form:
 
 ~~~ .php
-<?= self::form('search'); ?>
+<h3>
+  <?= i('Search'); ?>
+</h3>
+<div>
+  <?= self::form('search'); ?>
+</div>
 ~~~
 
+You can also define specific search query parameter key and route in this default search form component:
+
 ~~~ .php
-<?= self::form('search', [
-    'key' => 'search.term', // Custom search query
-    'route' => '/product/zoids' // Custom search context
-]); ?>
+<h3>
+  <?= i('Search'); ?>
+</h3>
+<div>
+  <?= self::form('search', [
+      'key' => 'search.term', // Custom search query
+      'route' => '/product/zoids' // Custom search context
+  ]); ?>
+</div>
 ~~~
 
 This page conditional statement is available to quickly determine the type of page we are currently in:

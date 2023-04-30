@@ -34,24 +34,15 @@ function route($content, $path, $query, $hash) {
         if (isset($page) && $page->exist && isset($pages) && $pages->count) {
             $chunk = $state->chunk ?? $page->chunk ?? 5;
             $part = ($state->part ?? 1) - 1;
-            $pages = $pages->parent->is(function ($v) use ($search) {
-                $content = $v['content'] ?? $v->content ?? "";
-                $description = $v['description'] ?? $v->description ?? "";
-                $name = $v['name'] ?? $v->name ?? "";
-                $title = $v['title'] ?? $v->title ?? "";
+            $level = \array_filter((array) ($state->x->search->level ?? []));
+            \asort($level);
+            $pages = $pages->parent->is(function ($v) use ($level, $search) {
                 foreach (\preg_split('/\s+/', $search, -1, \PREG_SPLIT_NO_EMPTY) as $q) {
-                    // Priority: `name`, `title`, `description`, `content`
-                    if ($name && false !== \stripos($name, $q)) {
-                        return true;
-                    }
-                    if ($title && false !== \stripos($title, $q)) {
-                        return true;
-                    }
-                    if ($description && false !== \stripos($description, $q)) {
-                        return true;
-                    }
-                    if ($content && false !== \stripos($content, $q)) {
-                        return true;
+                    foreach ($level as $kk => $vv) {
+                        $test = $v[$kk] ?? $v->{$kk} ?? "";
+                        if (\is_string($test) && "" !== $test && false !== \stripos($test, $q)) {
+                            return true;
+                        }
                     }
                 }
                 return false;
