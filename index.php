@@ -1,6 +1,6 @@
 <?php namespace x\search;
 
-function mark($content) {
+function page__content($content) {
     if (!$content || !\is_string($content)) {
         return $content;
     }
@@ -26,7 +26,19 @@ function mark($content) {
     return $content;
 }
 
-function route($content, $path, $query, $hash) {
+function page__description($description) {
+    return \fire(__NAMESPACE__ . "\\page__content", [$description], $this);
+}
+
+function page__title($title) {
+    return \fire(__NAMESPACE__ . "\\page__content", [$title], $this);
+}
+
+function route__page($content, $path, $query, $hash) {
+    return \Hook::fire('route.search', [$content, $path, $query, $hash]);
+}
+
+function route__search($content, $path, $query, $hash) {
     $key = \State::get('x.search.key') ?? 0;
     if (0 !== $key && null !== ($search = \get($_GET, $key))) {
         \extract($GLOBALS, \EXTR_SKIP);
@@ -88,22 +100,17 @@ function route($content, $path, $query, $hash) {
                 ]
             ]);
             // Apply the hook only if there is a match
-            \Hook::set([
-                'page.content',
-                'page.description',
-                'page.title'
-            ], __NAMESPACE__ . "\\mark", 2.1);
+            \Hook::set('page.content', __NAMESPACE__ . "\\page__content", 2.1);
+            \Hook::set('page.description', __NAMESPACE__ . "\\page__description", 2.1);
+            \Hook::set('page.title', __NAMESPACE__ . "\\page__title", 2.1);
             return ['pages', [], 200];
         }
     }
 }
 
-\Hook::set('route.page', function ($content, $path, $query, $hash) {
-    return \Hook::fire('route.search', [$content, $path, $query, $hash]);
-}, 100.1);
-
-\Hook::set('route.search', __NAMESPACE__ . "\\route", 100);
-
 if (\class_exists("\\Layout")) {
     !\Layout::path('form/search') && \Layout::set('form/search', __DIR__ . \D . 'engine' . \D . 'y' . \D . 'form' . \D . 'search.php');
 }
+
+\Hook::set('route.page', __NAMESPACE__ . "\\route__page", 100.1);
+\Hook::set('route.search', __NAMESPACE__ . "\\route__search", 100);
