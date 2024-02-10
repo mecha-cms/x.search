@@ -14,7 +14,7 @@ Append `?query=search+query` to the pages URL to search pages by file name or fi
 
 Add this snippet just before the `</header>` in `header.php` file of your active layout to add the default search form:
 
-~~~ .php
+~~~ .html.php
 <search>
   <?= self::form('search'); ?>
 </search>
@@ -22,7 +22,7 @@ Add this snippet just before the `</header>` in `header.php` file of your active
 
 You can also define specific search query parameter key and route in this default search form component:
 
-~~~ .php
+~~~ .html.php
 <search>
   <?= self::form('search', [
       'key' => 'search.term', // Custom search query
@@ -40,7 +40,7 @@ This page conditional statement is available to quickly determine the type of pa
 
 There is a recursive page search feature available from the `/search` route:
 
-~~~ .php
+~~~ .html.php
 <search>
   <?= self::form('search', ['route' => '/search']); ?>
 </search>
