@@ -5,7 +5,7 @@ icon: 'M15.5,12C18,12 20,14 20,16.5C20,17.38 19.75,18.21 19.31,18.9L22.39,22L21,
 color: '#146f64'
 author: Taufik Nurrohman
 type: Markdown
-version: 2.0.0
+version: 2.1.0
 ...
 
 ### Usage
@@ -15,29 +15,37 @@ Append `?query=search+query` to the pages URL to search pages by file name or fi
 Add this snippet just before the `</header>` in `header.php` file of your active layout to add the default search form:
 
 ~~~ .php
-<h3>
-  <?= i('Search'); ?>
-</h3>
-<div>
+<search>
   <?= self::form('search'); ?>
-</div>
+</search>
 ~~~
 
 You can also define specific search query parameter key and route in this default search form component:
 
 ~~~ .php
-<h3>
-  <?= i('Search'); ?>
-</h3>
-<div>
+<search>
   <?= self::form('search', [
       'key' => 'search.term', // Custom search query
       'route' => '/product/zoids' // Custom search context
   ]); ?>
-</div>
+</search>
 ~~~
 
 This page conditional statement is available to quickly determine the type of page we are currently in:
 
 `$site->has('query')`
 : Return `true` if current page is a search results page.
+
+### Recursive Search
+
+There is a recursive page search feature available from the `/search` route:
+
+~~~ .php
+<search>
+  <?= self::form('search', ['route' => '/search']); ?>
+</search>
+~~~
+
+If there is a page file stored as `.\lot\page\search.archive` or `.\lot\page\search.page`, then that file will come
+first. To avoid this route conflict, you can change the default search route (which is `'/search'`) to something else in
+the state file.

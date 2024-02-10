@@ -44,9 +44,8 @@ echo new HTML(Hook::fire('y.form.search', [[
         ]
     ],
     2 => [
-        'action' => $has_route ? ($url . '/' . trim($route, '/')) : ($has_path && $is_page ? dirname($current) : null),
+        'action' => $has_route ? ($url . '/' . trim($route, '/') . '/1') : ($has_path && $is_page ? dirname($current) . '/1' : null),
         'method' => 'get',
-        'name' => 'search',
-        'role' => 'search'
+        'name' => 'search'
     ]
 ]], $page), true);
