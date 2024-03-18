@@ -39,7 +39,7 @@ function route__page($content, $path, $query, $hash) {
     $path = \trim($path ?? "", '/');
     $route = \trim(\State::get('x.search.route') ?? 'search', '/');
     if ($path && 0 === \strpos($path . '/', $route . '/') && 0 !== $key && null !== \get($_GET, $key)) {
-        \extract($GLOBALS, \EXTR_SKIP);
+        \extract(\lot(), \EXTR_SKIP);
         $r = \substr($path, \strlen($route) + 1);
         $folder = \rtrim(\LOT . \D . 'page' . \D . \strtr($r, '/', \D), \D);
         $folder_home = \LOT . \D . 'page' . \D . \strtr(\trim($state->route ?? 'index', '/'), '/', \D);
@@ -79,16 +79,16 @@ function route__page($content, $path, $query, $hash) {
         }
         if (isset($t) && $t instanceof \Anemone && $t->count > 1)  {
             if (\i('Error') === $t->last) {
-                $GLOBALS['t']->last(true); // Remove “Error” title from the previous `route` hook(s) if any
+                \lot('t')->last(true); // Remove “Error” title from the previous `route` hook(s) if any
             }
         }
         $pages = \Pages::from($folder, 'page', $deep)->sort($sort);
-        $GLOBALS['page'] = $page;
+        \lot('page', $page);
         \State::set('count', $count = $page->count); // Total number of page(s) before chunk
         if (0 === $count) {
             return $content;
         }
-        $GLOBALS['pages'] = $pages = $pages->chunk($chunk, $part);
+        \lot('pages', $pages = $pages->chunk($chunk, $part));
         $count = $pages->count; // Total number of page(s) after chunk
         \State::set([
             'chunk' => $chunk,
@@ -117,7 +117,7 @@ function route__search($content, $path, $query, $hash) {
     $path = \trim(\preg_replace('/\/[1-9]\d*$/', "", $path ?? ""), '/');
     $route = \trim(\State::get('x.search.route') ?? 'search', '/');
     if (0 !== $key && null !== ($search = \get($_GET, $key))) {
-        \extract($GLOBALS, \EXTR_SKIP);
+        \extract(\lot(), \EXTR_SKIP);
         \State::set('has.query', true);
         if (isset($page) && $page->exist && isset($pages) && $pages->count) {
             $chunk = $state->chunk ?? $page->chunk ?? 5;
@@ -140,8 +140,8 @@ function route__search($content, $path, $query, $hash) {
             $pager->hash = $hash;
             $pager->path = '/' . ("" !== $path ? $path : $route);
             $pager->query = $query;
-            $GLOBALS['pager'] = $pager = $pager->chunk($chunk, $part);
-            $GLOBALS['pages'] = $pages = $pages->chunk($chunk, $part);
+            \lot('pager', $pager = $pager->chunk($chunk, $part));
+            \lot('pages', $pages = $pages->chunk($chunk, $part));
             if (0 === $count) {
                 \State::set([
                     'has' => [
@@ -157,10 +157,10 @@ function route__search($content, $path, $query, $hash) {
                         'pages' => true
                     ]
                 ]);
-                $GLOBALS['t'][] = \i('Error');
+                \lot('t')[] = \i('Error');
                 return ['pages', [], 404];
             }
-            $GLOBALS['t'][] = \i('Search');
+            \lot('t')[] = \i('Search');
             \State::set([
                 'has' => [
                     'next' => !!$pager->next,
@@ -187,8 +187,7 @@ function route__search($content, $path, $query, $hash) {
 
 if (\class_exists("\\Layout") && !\Layout::of('form/search')) {
     \Layout::set('form/search', static function (string $key, array $lot = []) {
-        \extract($lot, \EXTR_SKIP);
-        \extract($GLOBALS, \EXTR_SKIP);
+        \extract(\lot($lot), \EXTR_SKIP);
         $key = $lot['key'] ?? null;
         $has_key = isset($key) && \is_string($key);
         $has_path = !empty($url->path);
