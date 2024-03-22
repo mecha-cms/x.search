@@ -158,7 +158,7 @@ function route__search($content, $path, $query, $hash) {
                     ]
                 ]);
                 \lot('t')[] = \i('Error');
-                return ['pages', [], 404];
+                return ['pages/search', [], 404];
             }
             \lot('t')[] = \i('Search');
             \State::set([
@@ -180,7 +180,7 @@ function route__search($content, $path, $query, $hash) {
             \Hook::set('page.content', __NAMESPACE__ . "\\page__content", 2.1);
             \Hook::set('page.description', __NAMESPACE__ . "\\page__description", 2.1);
             \Hook::set('page.title', __NAMESPACE__ . "\\page__title", 2.1);
-            return ['pages', [], 200];
+            return ['pages/search', [], 200];
         }
     }
 }
