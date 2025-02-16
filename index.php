@@ -42,20 +42,11 @@ function route__page($content, $path, $query, $hash) {
         \extract(\lot(), \EXTR_SKIP);
         $r = \substr($path, \strlen($route) + 1);
         $folder = \rtrim(\LOT . \D . 'page' . \D . \strtr($r, '/', \D), \D);
-        $folder_home = \LOT . \D . 'page' . \D . \strtr(\trim($state->route ?? 'index', '/'), '/', \D);
-        if (\preg_match('/^(.*?)\/([1-9]\d*)$/', $path, $m)) {
-            [$any, $path, $part] = $m;
-            if (\exist([
-                $folder . '.archive',
-                $folder . '.page'
-            ], 1)) {
-                $path .= '/' . $part;
-                unset($part);
-            } else {
-                $folder = \dirname($folder);
-            }
+        $folder_index = \LOT . \D . 'page' . \D . \strtr(\trim($state->route ?? 'index', '/'), '/', \D);
+        if ($part = \x\page\n($path)) {
+            $path = \substr($path, 0, -\strlen('/' . $part));
         }
-        $part = ((int) ($part ?? 1)) - 1;
+        $part = ((int) ($part ?? 0)) - 1;
         $chunk = $state->chunk ?? $state->x->search->chunk ?? 5;
         $deep = $state->deep ?? $state->x->search->deep ?? true;
         $sort = $state->sort ?? $state->x->search->sort ?? [1, 'path'];
@@ -68,8 +59,8 @@ function route__page($content, $path, $query, $hash) {
         $page = \Page::from([
             'description' => \i('Search results.'),
             'path' => \exist([
-                $folder_home . '.archive',
-                $folder_home . '.page'
+                $folder_index . '.archive',
+                $folder_index . '.page'
             ], 1),
             'title' => \i('Search'),
             'x' => 'archive'
@@ -82,12 +73,17 @@ function route__page($content, $path, $query, $hash) {
                 \lot('t')->last(true); // Remove “Error” title from the previous `route` hook(s) if any
             }
         }
-        $pages = \Pages::from($folder, 'page', $deep)->sort($sort);
-        \lot('page', $page);
-        \State::set('count', $count = $page->count); // Total number of page(s) before chunk
-        if (0 === $count) {
+        if ($pages = $page->children('page', $deep)) {
+            $pages = $pages->sort($sort);
+        } else {
+            $pages = new \Pages;
+        }
+        // $pages = \Pages::from($folder, 'page', $deep)->sort($sort);
+        if (0 === ($count = $page->count)) { // Total number of page(s) before chunk
             return $content;
         }
+        \State::set('count', $count);
+        \lot('page', $page);
         \lot('pages', $pages = $pages->chunk($chunk, $part));
         $count = $pages->count; // Total number of page(s) after chunk
         \State::set([
@@ -97,7 +93,7 @@ function route__page($content, $path, $query, $hash) {
                 'page' => false,
                 'pages' => true,
                 'parent' => false,
-                'part' => !!($part + 1)
+                'part' => $part >= 0
             ],
             'is' => [
                 'error' => $count ? false : 404,
