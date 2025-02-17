@@ -4,26 +4,31 @@ function page__content($content) {
     if (!$content || !\is_string($content)) {
         return $content;
     }
-    $key = \State::get('x.search.key') ?? 0;
-    if (0 !== $key && $query = \preg_split('/\s+/', (string) \get($_GET, $key))) {
-        $parts = \preg_split('/(<[^>]+>)/', $content, -1, \PREG_SPLIT_DELIM_CAPTURE | \PREG_SPLIT_NO_EMPTY);
-        $out = "";
-        foreach ($parts as $v) {
-            if ($v && '<' === $v[0] && '>' === \substr($v, -1)) {
-                $out .= $v; // Ignore HTML tag(s)
-            } else {
-                foreach ($query as $q) {
-                    if (false === \stripos($v, $q)) {
-                        continue;
-                    }
-                    $v = \preg_replace('/' . \x($q) . '/i', '<mark>$0</mark>', $v);
-                }
-                $out .= $v;
-            }
-        }
-        return "" !== $out ? $out : null;
+    if ("" === ($search = \State::get('[x].query.search'))) {
+        return $content;
     }
-    return $content;
+    $r = "";
+    foreach (\apart($content, ['script', 'style', 'textarea']) as $v) {
+        if (0 === $v[1]) {
+            $i = $search === \strtolower($search); // Search query is not case sensitive?
+            $value = $v[0];
+            foreach (\explode(' ', $search) as $q) {
+                while ("" !== (string) $value && false !== ($a = $i ? \stripos($value, $q) : \strpos($value, $q))) {
+                    $r .= \substr($value, 0, $a);
+                    $r .= '<mark>';
+                    $r .= \substr($value, $a, $b = \strlen($q));
+                    $r .= '</mark>';
+                    $value = \substr($value, $a + $b);
+                }
+            }
+            if ("" !== $value) {
+                $r .= $value;
+            }
+            continue;
+        }
+        $r .= $v[0];
+    }
+    return $r;
 }
 
 function page__description($description) {
@@ -34,151 +39,127 @@ function page__title($title) {
     return \fire(__NAMESPACE__ . "\\page__content", [$title], $this);
 }
 
+// This route is executed after the default page route. It will alter the value of the current `$pages` variable.
 function route__page($content, $path, $query, $hash) {
-    $key = \State::get('x.search.key') ?? 0;
+    if ("" === ($search = \State::get('[x].query.search'))) {
+        return $content;
+    }
+    \extract(\lot(), \EXTR_SKIP);
     $path = \trim($path ?? "", '/');
     $route = \trim(\State::get('x.search.route') ?? 'search', '/');
-    if ($path && 0 === \strpos($path . '/', $route . '/') && 0 !== $key && null !== \get($_GET, $key)) {
+    if (!$part = \x\page\n($path)) {
+        return $content;
+    }
+    $path = \substr($path, 0, -\strlen('/' . $part));
+    $part = ((int) ($part ?? 0)) - 1;
+    $chunk = $state->chunk ?? $state->x->search->chunk ?? 5;
+    $deep = $state->deep ?? $state->x->search->deep ?? true;
+    // Recursive search…
+    if ($path && 0 === \strpos($path . '/', $route . '/')) {
         \extract(\lot(), \EXTR_SKIP);
         $r = \substr($path, \strlen($route) + 1);
-        $folder = \rtrim(\LOT . \D . 'page' . \D . \strtr($r, '/', \D), \D);
-        $folder_index = \LOT . \D . 'page' . \D . \strtr(\trim($state->route ?? 'index', '/'), '/', \D);
-        if ($part = \x\page\n($path)) {
-            $path = \substr($path, 0, -\strlen('/' . $part));
+        $folder = \LOT . \D . 'page' . ("" !== $r ? \D . $r : "");
+        if ("" !== $r && ($file = \exist([
+            $folder . '.archive',
+            $folder . '.page'
+        ], 1))) {
+            $page = new \Page($file);
+            // Create a new collection of `$pages`
+            $pages = $page->children('page', $deep) ?? new \Pages;
+        } else {
+            $page = \Page::from([
+                'description' => \i('Search result for the query %s.', '&#x201c;' . \strip_tags($search) . '&#x201d;'),
+                'exist' => true, // Make it to look like a page that does exist!
+                'title' => \i('Search'),
+                'type' => 'HTML',
+                'x' => 'archive'
+            ]);
+            // Create a new collection of `$pages`
+            $pages = \Pages::from($folder, 'page', true);
         }
-        $part = ((int) ($part ?? 0)) - 1;
-        $chunk = $state->chunk ?? $state->x->search->chunk ?? 5;
-        $deep = $state->deep ?? $state->x->search->deep ?? true;
-        $sort = $state->sort ?? $state->x->search->sort ?? [1, 'path'];
-        if (\exist([
-            $folder . \D . $route . '.archive',
-            $folder . \D . $route . '.page'
-        ], 1)) {
-            return \Hook::fire('route.search', [$content, "" !== $r ? '/' . $r : null, $query, $hash]);
-        }
-        $page = \Page::from([
-            'description' => \i('Search results.'),
-            'path' => \exist([
-                $folder_index . '.archive',
-                $folder_index . '.page'
-            ], 1),
-            'title' => \i('Search'),
-            'x' => 'archive'
-        ]);
-        if (!$page->exist) {
-            return $content;
-        }
-        if (isset($t) && $t instanceof \Anemone && $t->count > 1)  {
-            if (\i('Error') === $t->last) {
-                \lot('t')->last(true); // Remove “Error” title from the previous `route` hook(s) if any
+        $path = $r;
+    // Take the `$pages` value from its parent collection…
+    } else if (isset($pages) && \is_object($pages) && $pages instanceof \Pages && $pages->parent) {
+        $pages = $pages->parent;
+    }
+    $level = \array_filter((array) ($state->x->search->level ?? []));
+    \asort($level);
+    $stack = [];
+    $pages = $pages->is(function ($v) use ($level, $search, &$stack) {
+        $match = false;
+        foreach (\explode(' ', $search) as $vv) {
+            foreach ($level as $kkk => $vvv) {
+                $test = $v->{$kkk} ?? $v[$kkk] ?? "";
+                // TODO: Case sensitive search
+                if (\is_string($test) && "" !== $test && false !== \strpos($test, $vv)) {
+                    $match = true;
+                    $stack[$k = $v->path] = ($stack[$k] ?? 0) + \substr_count($test, $vv);
+                }
             }
         }
-        if ($pages = $page->children('page', $deep)) {
-            $pages = $pages->sort($sort);
-        } else {
-            $pages = new \Pages;
-        }
-        // $pages = \Pages::from($folder, 'page', $deep)->sort($sort);
-        if (0 === ($count = $page->count)) { // Total number of page(s) before chunk
-            return $content;
-        }
-        \State::set('count', $count);
-        \lot('page', $page);
-        \lot('pages', $pages = $pages->chunk($chunk, $part));
-        $count = $pages->count; // Total number of page(s) after chunk
-        \State::set([
-            'chunk' => $chunk,
-            'deep' => $deep,
-            'has' => [
-                'page' => false,
-                'pages' => true,
-                'parent' => false,
-                'part' => $part >= 0
-            ],
-            'is' => [
-                'error' => $count ? false : 404,
-                'page' => false,
-                'pages' => true
-            ],
-            'part' => $part + 1,
-            'sort' => $sort
-        ]);
-        $path = $r;
+        return $match;
+    });
+    \arsort($stack); // TODO: Sort by most match
+    $pages->value = \array_keys($stack);
+    $pager = \Pager::from($pages);
+    $pager->hash = $hash;
+    $pager->path = '/' . ("" !== $path ? $path : $route);
+    $pager->query = $query;
+    if (isset($t) && \i('Error') === $t->last) {
+        $t->last(true); // Remove the “Error” title
     }
-    return \Hook::fire('route.search', [$content, "" !== $path ? '/' . $path : null, $query, $hash]);
+    $t[] = \i('Search'); // Add the “Search” title
+    \lot('page', $page);
+    \lot('pager', $pager->chunk($chunk, $part));
+    \lot('pages', $pages->chunk($chunk, $part));
+    \lot('t', $t);
+    \State::set([
+        'chunk' => $chunk,
+        'count' => $pages->count,
+        'deep' => $deep,
+        'has' => [
+            'next' => !!$pager->next,
+            'page' => false,
+            'pages' => true,
+            'part' => $part >= 0,
+            'prev' => !!$pager->prev
+        ],
+        'is' => [
+            'error' => false,
+            'page' => false,
+            'pages' => true
+        ],
+        'part' => $part + 1
+    ]);
+    return \Hook::fire('route.search', [$content, ("" !== $path ? '/' . $path : "") . '/' . ($part + 1), $query, $hash]);
 }
 
+// Based on the condition of the top route, at this point there should have been a search query set properly and a page
+// part present in the URL.
 function route__search($content, $path, $query, $hash) {
-    $key = \State::get('x.search.key') ?? 0;
-    $path = \trim(\preg_replace('/\/[1-9]\d*$/', "", $path ?? ""), '/');
-    $route = \trim(\State::get('x.search.route') ?? 'search', '/');
-    if (0 !== $key && null !== ($search = \get($_GET, $key))) {
-        \extract(\lot(), \EXTR_SKIP);
-        \State::set('has.query', true);
-        if (isset($page) && $page->exist && isset($pages) && $pages->count) {
-            $chunk = $state->chunk ?? $page->chunk ?? 5;
-            $part = ($state->part ?? 1) - 1;
-            $level = \array_filter((array) ($state->x->search->level ?? []));
-            \asort($level);
-            $pages = $pages->parent->is(function ($v) use ($level, $search) {
-                foreach (\preg_split('/\s+/', $search, -1, \PREG_SPLIT_NO_EMPTY) as $q) {
-                    foreach ($level as $kk => $vv) {
-                        $test = $v[$kk] ?? $v->{$kk} ?? "";
-                        if (\is_string($test) && "" !== $test && false !== \stripos($test, $q)) {
-                            return true;
-                        }
-                    }
-                }
-                return false;
-            });
-            \State::set('count', $count = $pages->count);
-            $pager = \Pager::from($pages);
-            $pager->hash = $hash;
-            $pager->path = '/' . ("" !== $path ? $path : $route);
-            $pager->query = $query;
-            \lot('pager', $pager = $pager->chunk($chunk, $part));
-            \lot('pages', $pages = $pages->chunk($chunk, $part));
-            if (0 === $count) {
-                \State::set([
-                    'has' => [
-                        'next' => false,
-                        'page' => false,
-                        'pages' => false,
-                        'parent' => false,
-                        'prev' => false
-                    ],
-                    'is' => [
-                        'error' => 404,
-                        'page' => false,
-                        'pages' => true
-                    ]
-                ]);
-                \lot('t')[] = \i('Error');
-                return ['pages/search', [], 404];
-            }
-            \lot('t')[] = \i('Search');
-            \State::set([
-                'has' => [
-                    'next' => !!$pager->next,
-                    'page' => true,
-                    'pages' => true,
-                    'parent' => !!$page->parent,
-                    'part' => !!($part + 1),
-                    'prev' => !!$pager->prev
-                ],
-                'is' => [
-                    'error' => false,
-                    'page' => false,
-                    'pages' => true
-                ]
-            ]);
-            // Apply the hook only if there is a match
-            \Hook::set('page.content', __NAMESPACE__ . "\\page__content", 2.1);
-            \Hook::set('page.description', __NAMESPACE__ . "\\page__description", 2.1);
-            \Hook::set('page.title', __NAMESPACE__ . "\\page__title", 2.1);
-            return ['pages/search', [], 200];
-        }
+    \extract(\lot(), \EXTR_SKIP);
+    if (0 === $pages->count) {
+        \State::set([
+            'has' => [
+                'next' => false,
+                'page' => false,
+                'pages' => false,
+                'parent' => false,
+                'prev' => false
+            ],
+            'is' => [
+                'error' => 404,
+                'page' => false,
+                'pages' => true
+            ]
+        ]);
+        \lot('t')[] = \i('Error');
+        return ['pages/search', [], 404];
     }
+    \Hook::set('page.content', __NAMESPACE__ . "\\page__content", 2.1);
+    \Hook::set('page.description', __NAMESPACE__ . "\\page__description", 2.1);
+    \Hook::set('page.title', __NAMESPACE__ . "\\page__title", 2.1);
+    return ['pages/search', [], 200];
 }
 
 if (\class_exists("\\Layout") && !\Layout::of('form/search')) {
@@ -234,5 +215,9 @@ if (\class_exists("\\Layout") && !\Layout::of('form/search')) {
     });
 }
 
-\Hook::set('route.page', __NAMESPACE__ . "\\route__page", 100.1);
-\Hook::set('route.search', __NAMESPACE__ . "\\route__search", 100);
+if (null !== ($search = \get($_GET, $state->x->search->key ?? 'query'))) {
+    \Hook::set('route.page', __NAMESPACE__ . "\\route__page", 100.1);
+    \Hook::set('route.search', __NAMESPACE__ . "\\route__search", 100);
+    \State::set('[x].query.search', \trim(\preg_replace('/\s+/', ' ', $search)));
+    \State::set('has.query', true);
+}
