@@ -4,12 +4,12 @@ return [
     'chunk' => 5,
     'deep' => true,
     'key' => 'query',
-    'level' => [
-        'name' => 1,
-        'title' => 2,
-        'description' => 3,
-        'content' => 0 // Change the value to be greater than `0` to include page content as the search target as well
-    ],
     'route' => '/search',
-    'sort' => [1, 'path']
+    'score' => [
+        'content' => 0, // Change this to a value greater than `0` to include the page content as a search target!
+        'description' => 3,
+        'name' => 1,
+        'title' => 2
+    ],
+    'sort' => [-1, 'search-score']
 ];

@@ -1,29 +1,27 @@
 <?php namespace x\search;
 
-function page__content($content) {
+function page__($content) {
     if (!$content || !\is_string($content)) {
         return $content;
     }
     if ("" === ($search = \State::get('[x].query.search'))) {
         return $content;
     }
+    $query = \explode(' ', $search);
+    $strict = $search !== \strtolower($search); // Search query is case sensitive?
+    // Prioritize the longest query string when marking up the text…
+    \usort($query, static function ($a, $b) {
+        return \strlen($b) <=> \strlen($a);
+    });
     $r = "";
+    foreach ($query as &$q) {
+        $q = \x($q);
+    }
+    unset($q);
+    $query = \implode('|', $query);
     foreach (\apart($content, ['script', 'style', 'textarea']) as $v) {
         if (0 === $v[1]) {
-            $i = $search === \strtolower($search); // Search query is not case sensitive?
-            $value = $v[0];
-            foreach (\explode(' ', $search) as $q) {
-                while ("" !== (string) $value && false !== ($a = $i ? \stripos($value, $q) : \strpos($value, $q))) {
-                    $r .= \substr($value, 0, $a);
-                    $r .= '<mark>';
-                    $r .= \substr($value, $a, $b = \strlen($q));
-                    $r .= '</mark>';
-                    $value = \substr($value, $a + $b);
-                }
-            }
-            if ("" !== $value) {
-                $r .= $value;
-            }
+            $r .= \preg_replace('/' . $query . '/' . ($strict ? "" : 'i'), '<mark tabindex="0">' . \S . '$0' . \S . '</mark>', $v[0]);
             continue;
         }
         $r .= $v[0];
@@ -31,32 +29,38 @@ function page__content($content) {
     return $r;
 }
 
-function page__description($description) {
-    return \fire(__NAMESPACE__ . "\\page__content", [$description], $this);
-}
-
-function page__title($title) {
-    return \fire(__NAMESPACE__ . "\\page__content", [$title], $this);
+function page__search_score($n) {
+    if (null !== $n) {
+        return $n;
+    }
+    \extract(\lot(), \EXTR_SKIP);
+    $n = 0;
+    if ($score = \array_filter((array) ($state->x->search->score ?? []))) {
+        foreach ($score as $k => $v) {
+            $test = \s($this->{$k} ?? $this[$k] ?? "");
+            if (\is_string($test) && "" !== $test) {
+                $n += \substr_count($test, \S . '</mark>');
+            }
+        }
+    }
+    return $n;
 }
 
 // This route is executed after the default page route. It will alter the value of the current `$pages` variable.
 function route__page($content, $path, $query, $hash) {
-    if ("" === ($search = \State::get('[x].query.search'))) {
-        return $content;
-    }
     \extract(\lot(), \EXTR_SKIP);
     $path = \trim($path ?? "", '/');
-    $route = \trim(\State::get('x.search.route') ?? 'search', '/');
-    if (!$part = \x\page\n($path)) {
-        return $content;
+    $route = \trim($state->x->search->route ?? 'search', '/');
+    if ($part = \x\page\n($path)) {
+        $path = \substr($path, 0, -\strlen('/' . $part));
     }
-    $path = \substr($path, 0, -\strlen('/' . $part));
-    $part = ((int) ($part ?? 0)) - 1;
-    $chunk = $state->chunk ?? $state->x->search->chunk ?? 5;
-    $deep = $state->deep ?? $state->x->search->deep ?? true;
-    // Recursive search…
+    $part = ($part ?? 0) - 1;
+    $chunk = $state->x->search->chunk ?? 5;
+    $deep = $state->x->search->deep ?? true;
+    $sort = \array_replace([-1, 'search-score'], (array) ($state->x->search->sort ?? []));
+    $search = \State::get('[x].query.search') ?? "";
+    // For `/search/…`
     if ($path && 0 === \strpos($path . '/', $route . '/')) {
-        \extract(\lot(), \EXTR_SKIP);
         $r = \substr($path, \strlen($route) + 1);
         $folder = \LOT . \D . 'page' . ("" !== $r ? \D . $r : "");
         if ("" !== $r && ($file = \exist([
@@ -64,43 +68,43 @@ function route__page($content, $path, $query, $hash) {
             $folder . '.page'
         ], 1))) {
             $page = new \Page($file);
-            // Create a new collection of `$pages`
+            // Create a new batch of `$pages`
             $pages = $page->children('page', $deep) ?? new \Pages;
         } else {
             $page = \Page::from([
-                'description' => \i('Search result for the query %s.', '&#x201c;' . \strip_tags($search) . '&#x201d;'),
+                'description' => \i('Search results for query %s.', '&#x201c;' . \strip_tags($search) . '&#x201d;'),
                 'exist' => true, // Make it to look like a page that does exist!
                 'title' => \i('Search'),
-                'type' => 'HTML',
-                'x' => 'archive'
+                'type' => 'HTML'
             ]);
-            // Create a new collection of `$pages`
-            $pages = \Pages::from($folder, 'page', true);
+            // Create a new batch of `$pages`
+            $pages = \Pages::from($folder, 'page', $deep = true);
         }
         $path = $r;
-    // Take the `$pages` value from its parent collection…
+    // Take the `$pages` value from its parent batch…
     } else if (isset($pages) && \is_object($pages) && $pages instanceof \Pages && $pages->parent) {
         $pages = $pages->parent;
     }
-    $level = \array_filter((array) ($state->x->search->level ?? []));
-    \asort($level);
-    $stack = [];
-    $pages = $pages->is(function ($v) use ($level, $search, &$stack) {
-        $match = false;
-        foreach (\explode(' ', $search) as $vv) {
-            foreach ($level as $kkk => $vvv) {
-                $test = $v->{$kkk} ?? $v[$kkk] ?? "";
-                // TODO: Case sensitive search
-                if (\is_string($test) && "" !== $test && false !== \strpos($test, $vv)) {
-                    $match = true;
-                    $stack[$k = $v->path] = ($stack[$k] ?? 0) + \substr_count($test, $vv);
+    \State::set([
+        'chunk' => $chunk,
+        'deep' => $deep,
+        'part' => $part + 1,
+        'sort' => $sort
+    ]);
+    $score = \array_filter((array) ($state->x->search->score ?? []));
+    $strict = $search !== \strtolower($search); // Search query is case sensitive?
+    \asort($score);
+    $pages = $pages->is(function ($page) use ($score, $search, $strict) {
+        foreach (\explode(' ', $search) as $v) {
+            foreach ($score as $kk => $vv) {
+                $test = \s($page->{$kk} ?? $page[$kk] ?? "");
+                if (\is_string($test) && "" !== $test && false !== ($strict ? \strpos($test, $v) : \stripos($test, $v))) {
+                    return true;
                 }
             }
         }
-        return $match;
-    });
-    \arsort($stack); // TODO: Sort by most match
-    $pages->value = \array_keys($stack);
+        return false;
+    })->sort($sort);
     $pager = \Pager::from($pages);
     $pager->hash = $hash;
     $pager->path = '/' . ("" !== $path ? $path : $route);
@@ -156,9 +160,7 @@ function route__search($content, $path, $query, $hash) {
         \lot('t')[] = \i('Error');
         return ['pages/search', [], 404];
     }
-    \Hook::set('page.content', __NAMESPACE__ . "\\page__content", 2.1);
-    \Hook::set('page.description', __NAMESPACE__ . "\\page__description", 2.1);
-    \Hook::set('page.title', __NAMESPACE__ . "\\page__title", 2.1);
+    \Hook::set('page.search-score', __NAMESPACE__ . "\\page__search_score", 0);
     return ['pages/search', [], 200];
 }
 
@@ -216,8 +218,17 @@ if (\class_exists("\\Layout") && !\Layout::of('form/search')) {
 }
 
 if (null !== ($search = \get($_GET, $state->x->search->key ?? 'query'))) {
-    \Hook::set('route.page', __NAMESPACE__ . "\\route__page", 100.1);
-    \Hook::set('route.search', __NAMESPACE__ . "\\route__search", 100);
-    \State::set('[x].query.search', \trim(\preg_replace('/\s+/', ' ', $search)));
-    \State::set('has.query', true);
+    if ("" !== ($search = \trim(\preg_replace('/\s+/', ' ', $search)))) {
+        \State::set('[x].query.search', $search);
+        \State::set('has.query', true);
+        if ($score = (array) ($state->x->search->score ?? [])) {
+            foreach ($score as $k => $v) {
+                \Hook::set('page.' . $k, __NAMESPACE__ . "\\page__", 2.1);
+            }
+        }
+    }
+    if (\x\page\n(\trim($url->path ?? "", '/'))) {
+        \Hook::set('route.page', __NAMESPACE__ . "\\route__page", 100.1);
+        \Hook::set('route.search', __NAMESPACE__ . "\\route__search", 100);
+    }
 }
