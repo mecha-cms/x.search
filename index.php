@@ -21,7 +21,7 @@ function page__($content) {
     $query = \implode('|', $query);
     foreach (\apart($content, ['script', 'style', 'textarea']) as $v) {
         if (0 === $v[1]) {
-            $r .= \preg_replace('/' . $query . '/' . ($strict ? "" : 'i'), '<mark tabindex="0">' . \S . '$0' . \S . '</mark>', $v[0]);
+            $r .= \preg_replace('/(?>' . $query . ')/' . ($strict ? "" : 'i'), '<mark tabindex="0">' . \S . '$0' . \S . '</mark>', $v[0]);
             continue;
         }
         $r .= $v[0];
