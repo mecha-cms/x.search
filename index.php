@@ -51,7 +51,7 @@ function route__page($content, $path, $query, $hash) {
     \extract(\lot(), \EXTR_SKIP);
     $path = \trim($path ?? "", '/');
     $route = \trim($state->x->search->route ?? 'search', '/');
-    if ($part = \x\page\n($path)) {
+    if ($part = \x\page\part($path)) {
         $path = \substr($path, 0, -\strlen('/' . $part));
     }
     $part = ($part ?? 0) - 1;
@@ -227,7 +227,7 @@ if (null !== ($search = \get($_GET, $state->x->search->key ?? 'query'))) {
             }
         }
     }
-    if (\x\page\n(\trim($url->path ?? "", '/'))) {
+    if (\x\page\part(\trim($url->path ?? "", '/'))) {
         \Hook::set('route.page', __NAMESPACE__ . "\\route__page", 100.1);
         \Hook::set('route.search', __NAMESPACE__ . "\\route__search", 100);
     }
