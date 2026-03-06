@@ -9,11 +9,12 @@ function page__($content) {
         return $content;
     }
     $query = \explode(' ', $search);
+    $query[] = $search;
     $r = "";
     foreach (\apart($content, ['script', 'style', 'textarea']) as $v) {
         if (0 === $v[1]) {
             $r .= \r($v[0], $query, function ($v) {
-                return '<mark tabindex="0">' . $v . '</mark>';
+                return \S . '<mark tabindex="0">' . $v . '</mark>' . \S;
             }, $search !== \strtolower($search));
             continue;
         }
@@ -22,24 +23,22 @@ function page__($content) {
     return $r;
 }
 
-function page__search_score($n) {
-    if (null !== $n) {
-        return $n;
+function page__search_score($score) {
+    if (null !== $score) {
+        return $score;
     }
     \extract(\lot(), \EXTR_SKIP);
-    $n = 0;
-    if ($score = \array_filter((array) ($state->x->search->score ?? []))) {
-        foreach ($score as $k => $v) {
-            $test = \s($this->{$k} ?? $this[$k] ?? "");
-            if (\is_string($test) && "" !== $test) {
-                $n += \substr_count($test, \S . '</mark>');
-            }
+    $score = 0;
+    foreach (\array_filter((array) ($state->x->search->score ?? [])) as $k => $v) {
+        $v = \s($this->{$k} ?? $this[$k] ?? "");
+        if (\is_string($v) && "" !== $v) {
+            $score += \substr_count($v, '</mark>' . \S);
         }
     }
-    return $n;
+    return $score;
 }
 
-// This route is executed after the default page route. It will alter the value of the current `$pages` variable.
+// This route is executed after the default page route. It will alter the value of the current `$pages` variable
 function route__page($content, $path, $query, $hash) {
     \extract(\lot(), \EXTR_SKIP);
     $path = \trim($path ?? "", '/');
@@ -116,8 +115,8 @@ function route__page($content, $path, $query, $hash) {
     return \Hook::fire('route.search', [$content, ("" !== $path ? '/' . $path : "") . '/' . $part, $query, $hash]);
 }
 
-// Based on the condition of the top route, at this point there should have been a search query set properly and a page
-// part present in the link.
+// Based on the condition of the top route, at this point there should have
+// been a search query set properly and a page part present in the link…
 function route__search($content, $path, $query, $hash) {
     \extract(\lot(), \EXTR_SKIP);
     if (0 === $pages->count) {
