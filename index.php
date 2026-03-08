@@ -14,7 +14,7 @@ function page__($content) {
     foreach (\apart($content, ['script', 'style', 'textarea']) as $v) {
         if (0 === $v[1]) {
             $r .= \r($v[0], $query, function ($v) {
-                return \S . '<mark tabindex="0">' . $v . '</mark>' . \S;
+                return '<mark tabindex="0">' . \S . $v . \S . '</mark>';
             }, $search !== \strtolower($search));
             continue;
         }
@@ -32,7 +32,7 @@ function page__search_score($score) {
     foreach (\array_filter((array) ($state->x->search->score ?? [])) as $k => $v) {
         $v = \s($this->{$k} ?? $this[$k] ?? "");
         if (\is_string($v) && "" !== $v) {
-            $score += \substr_count($v, '</mark>' . \S);
+            $score += \substr_count($v, \S . '</mark>');
         }
     }
     return $score;
