@@ -57,7 +57,7 @@ function route__page($content, $path, $query, $hash) {
         $folder = \LOT . \D . 'page' . ("" !== $r ? \D . $r : "");
         if ("" !== $r && ($file = \exist($folder . '.{' . ($x = x\page\x()) . '}', 1))) {
             $page = new \Page($file);
-            // Create a new batch of `$pages`
+            // Create a new list of `$pages`
             $pages = $page->children($x, $deep) ?? new \Pages;
         } else {
             $page = \Page::from([
@@ -66,13 +66,13 @@ function route__page($content, $path, $query, $hash) {
                 'title' => \i('Search'),
                 'type' => 'HTML'
             ]);
-            // Create a new batch of `$pages`
+            // Create a new list of `$pages`
             $pages = \Pages::from($folder, $x, true);
         }
         $path = $r;
-    // Take the `$pages` value from its batch…
+    // Take the `$pages` value from its list…
     } else if (isset($pages) && \is_object($pages) && $pages instanceof \Pages) {
-        $pages = $pages->batch();
+        $pages = $pages->list();
     }
     $score = \array_filter((array) ($state->x->search->score ?? []));
     $strict = $search !== \strtolower($search); // Search query is case sensitive?
