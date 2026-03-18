@@ -55,7 +55,8 @@ function route__page($content, $path, $query, $hash) {
     if ($path && 0 === \strpos($path . '/', $route . '/')) {
         $r = \substr($path, \strlen($route) + 1);
         $folder = \LOT . \D . 'page' . ("" !== $r ? \D . $r : "");
-        if ("" !== $r && ($file = \exist($folder . '.{' . ($x = x\page\x()) . '}', 1))) {
+        $x = \x\page\x();
+        if ("" !== $r && ($file = \exist($folder . '.{' . $x . '}', 1))) {
             $page = new \Page($file);
             // Create a new list of `$pages`
             $pages = $page->children($x, $deep) ?? new \Pages;
@@ -80,7 +81,7 @@ function route__page($content, $path, $query, $hash) {
     $pages = $pages->is(function ($page) use ($score, $search, $strict) {
         foreach (\explode(' ', $search) as $v) {
             foreach ($score as $kk => $vv) {
-                $test = \s($page->{$kk} ?? $page[$kk] ?? "");
+                $test = \s($page->{\f2p($kk)} ?? $page->{$kk} ?? $page[$kk] ?? "");
                 if (\is_string($test) && "" !== $test && false !== ($strict ? \strpos($test, $v) : \stripos($test, $v))) {
                     return true;
                 }
@@ -92,8 +93,8 @@ function route__page($content, $path, $query, $hash) {
     $pager->hash = $hash;
     $pager->path = '/' . ("" !== $path ? $path : $route);
     $pager->query = $query;
-    if (isset($t) && \i('Error') === $t->last) {
-        $t->last(true); // Remove the “Error” title
+    if (isset($t) && \i('Error') === $t->last()) {
+        $t->pop();
     }
     $t[] = \i('Search'); // Add the “Search” title
     \lot('page', $page);
@@ -132,10 +133,18 @@ function route__search($content, $path, $query, $hash) {
             ]
         ]);
         \lot('t')[] = \i('Error');
-        return ['pages/search', [], 404];
+        return [
+            'lot' => [],
+            'status' => 404,
+            'y' => 'pages/search'
+        ];
     }
     \Hook::set('page.search-score', __NAMESPACE__ . "\\page__search_score", 0);
-    return ['pages/search', [], 200];
+    return [
+        'lot' => [],
+        'status' => 200,
+        'y' => 'pages/search'
+    ];
 }
 
 if (\class_exists("\\Layout") && !\Layout::of('form/search')) {
@@ -183,7 +192,7 @@ if (\class_exists("\\Layout") && !\Layout::of('form/search')) {
                 ]
             ],
             2 => [
-                'action' => $has_route ? $link->base . '/' . \trim($route, '/') . '/1' : ($has_path && $is_page ? \dirname($current) . '/1' : null),
+                'action' => $has_route ? $link->base('/' . \trim($route, '/') . '/1') : ($has_path && $is_page ? \dirname($current) . '/1' : null),
                 'method' => 'get',
                 'name' => 'search'
             ]
