@@ -71,9 +71,9 @@ function route__page($content, $path, $query, $hash) {
             $pages = \Pages::from($folder, $x, true);
         }
         $path = $r;
-    // Take the `$pages` value from its list…
-    } else if (isset($pages) && \is_object($pages) && $pages instanceof \Pages) {
-        $pages = $pages->list();
+    // Take the `$pages` value from its batch…
+    } else if (isset($pages) && $pages instanceof \Pages) {
+        $pages = $pages->batch();
     }
     $score = \array_filter((array) ($state->x->search->score ?? []));
     $strict = $search !== \strtolower($search); // Search query is case sensitive?
