@@ -42,7 +42,7 @@ function page__search_score($score) {
 function route__page($content, $path, $query, $hash) {
     \extract(\lot(), \EXTR_SKIP);
     $path = \trim($path ?? "", '/');
-    $route = \trim($state->x->search->route ?? 'search', '/');
+    $sub = \trim($state->x->search->sub ?? 'search', '/');
     if ($part = \x\page\part($path)) {
         $path = \substr($path, 0, -\strlen('/' . $part));
     }
@@ -52,8 +52,8 @@ function route__page($content, $path, $query, $hash) {
     $sort = \array_replace([-1, 'search-score'], (array) ($state->x->search->sort ?? []));
     $search = $state->q('search.query') ?? "";
     // For `/search/…`
-    if ($path && 0 === \strpos($path . '/', $route . '/')) {
-        $r = \substr($path, \strlen($route) + 1);
+    if ($path && 0 === \strpos($path . '/', $sub . '/')) {
+        $r = \substr($path, \strlen($sub) + 1);
         $folder = \LOT . \D . 'page' . ("" !== $r ? \D . $r : "");
         $x = \x\page\x();
         if ("" !== $r && ($file = \exist($folder . '.{' . $x . '}', 1))) {
@@ -91,7 +91,7 @@ function route__page($content, $path, $query, $hash) {
     })->sort($sort);
     $pager = \Pager::from($pages);
     $pager->hash = $hash;
-    $pager->path = '/' . ("" !== $path ? $path : $route);
+    $pager->path = '/' . ("" !== $path ? $path : $sub);
     $pager->query = $query;
     if (isset($t) && \i('Error') === $t->last()) {
         $t->pop();
@@ -153,7 +153,7 @@ if (\class_exists("\\Layout") && !\Layout::of('form/search')) {
         $key = $lot['key'] ?? null;
         $has_key = isset($key) && \is_string($key);
         $has_path = !empty($link->path);
-        $has_route = isset($route) && \is_string($route);
+        $has_route = \is_string($route ?? 0);
         $is_page = $site->is('page');
         $current = $has_path ? $link->current(false, false) : null;
         $key = $has_key ? $key : ($state->x->search->key ?? null);

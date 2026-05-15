@@ -25,13 +25,13 @@ Add this snippet just before the `</header>` in `header.php` file of your active
 </search>
 ~~~
 
-You can also define specific search query parameter key and route in this default search form component:
+You can also define specific search query parameter key and sub route in this default search form component:
 
 ~~~ .html.php
 <search>
   <?= self::form('search', [
       'key' => 'search.term', // Custom search query
-      'route' => '/product/zoids' // Custom search context
+      'sub' => '/product/zoids' // Custom search context
   ]); ?>
 </search>
 ~~~
@@ -47,10 +47,10 @@ There is a recursive page search feature available from the `/search` route:
 
 ~~~ .html.php
 <search>
-  <?= self::form('search', ['route' => '/search']); ?>
+  <?= self::form('search', ['sub' => '/search']); ?>
 </search>
 ~~~
 
 If you have a page file stored as `.\lot\page\search.*` where `*` is the supported page file extension, then that page
-will be prioritized. To avoid this route conflict, you can change the default search route (which is `'/search'`) to
+will be prioritized. To avoid this route conflict, you can change the default search sub route (which is `'/search'`) to
 something else in the state file.
