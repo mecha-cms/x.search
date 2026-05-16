@@ -153,7 +153,7 @@ if (\class_exists("\\Layout") && !\Layout::of('form/search')) {
         $key = $lot['key'] ?? null;
         $has_key = isset($key) && \is_string($key);
         $has_path = !empty($link->path);
-        $has_route = \is_string($route ?? 0);
+        $has_sub = \is_string($sub ?? 0);
         $is_page = $site->is('page');
         $current = $has_path ? $link->current(false, false) : null;
         $key = $has_key ? $key : ($state->x->search->key ?? null);
@@ -177,7 +177,7 @@ if (\class_exists("\\Layout") && !\Layout::of('form/search')) {
                                     }
                                     return $v;
                                 })($key) : \strtr($key, ["\\." => '.'])) : null,
-                                'placeholder' => $title && !$has_route ? \i('Search in %s', ['&#x201c;' . \S . $title . \S . '&#x201d;']) : null,
+                                'placeholder' => $title && !$has_sub ? \i('Search in %s', ['&#x201c;' . \S . $title . \S . '&#x201d;']) : null,
                                 'type' => 'text',
                                 'value' => null !== $key ? \get($_GET, $key) : null
                             ]
@@ -192,7 +192,7 @@ if (\class_exists("\\Layout") && !\Layout::of('form/search')) {
                 ]
             ],
             2 => [
-                'action' => $has_route ? $link->base('/' . \trim($route, '/') . '/1') : ($has_path && $is_page ? \dirname($current) . '/1' : null),
+                'action' => $has_sub ? $link->base('/' . \trim($sub, '/') . '/1') : ($has_path && $is_page ? \dirname($current) . '/1' : null),
                 'method' => 'get',
                 'name' => 'search'
             ]
